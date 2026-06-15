@@ -39,7 +39,7 @@ export default function VoteCard({ pr }: { pr: PR }) {
     <button
       onClick={handleVote}
       disabled={voted || loading}
-      className={`ml-4 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+      className={`px-4 py-3 sm:py-2 rounded-lg text-sm font-medium transition-all w-full sm:w-auto min-h-[44px] ${
         voted
           ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-800 cursor-default'
           : loading

@@ -72,12 +72,12 @@ export default function TaskCard() {
             key={task.id}
             className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:border-slate-600 transition-colors"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1 w-full">
                 {getStatusIcon(task.status)}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-white">{task.title}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-medium text-white leading-tight">{task.title}</h3>
                     {getPriorityBadge(task.priority)}
                   </div>
                   <p className="text-sm text-slate-400 mt-1">
@@ -89,7 +89,7 @@ export default function TaskCard() {
                   </p>
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right w-full sm:w-auto pt-2 sm:pt-0 border-t border-slate-700 sm:border-0 mt-2 sm:mt-0">
                 <span className="text-lg font-semibold text-indigo-400">{task.reward}</span>
               </div>
             </div>

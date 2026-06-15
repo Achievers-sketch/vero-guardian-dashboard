@@ -73,13 +73,13 @@ export default function PRFeed() {
       
       <div className="space-y-3">
         {prs.map((pr) => (
-          <div key={pr.id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 flex items-center justify-between hover:border-slate-600 transition-colors">
-            <div className="flex-1">
+          <div key={pr.id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-600 transition-colors">
+            <div className="flex-1 w-full">
               <a 
                 href={pr.url} 
                 target="_blank" 
                 rel="noreferrer" 
-                className="font-medium text-white hover:text-indigo-400 transition-colors"
+                className="font-medium text-white hover:text-indigo-400 transition-colors block break-words"
               >
                 #{pr.id} {pr.title}
               </a>
@@ -93,7 +93,9 @@ export default function PRFeed() {
                 </span>
               </div>
             </div>
-            <VoteCard pr={pr} />
+            <div className="w-full sm:w-auto">
+              <VoteCard pr={pr} />
+            </div>
           </div>
         ))}
       </div>
