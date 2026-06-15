@@ -1,36 +1,17 @@
 'use client';
 
 import { useWallet } from '@/context/WalletContext';
-import ConnectButton from '@/components/ConnectButton';
 import PRFeed from '@/components/PRFeed';
 import TaskCard from '@/components/TaskCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { Shield, Trophy, Activity, ArrowRight, Code2, CheckCircle2 } from 'lucide-react';
+import { Trophy, Activity, ArrowRight, Code2, CheckCircle2 } from 'lucide-react';
+import Layout from '@/components/Layout';
 
 export default function Home() {
   const { isConnected, reputation } = useWallet();
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/30">
-                <Shield className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Vero Guardian</h1>
-                <p className="text-xs text-slate-400">Decentralized Validation Network</p>
-              </div>
-            </div>
-            <ConnectButton />
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+    <Layout>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome / Stats */}
         <div className="mb-8">
@@ -129,6 +110,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+    </Layout>
   );
 }
