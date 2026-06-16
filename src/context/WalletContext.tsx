@@ -1,5 +1,6 @@
 'use client';
 
+ fix/issue-7-freighter-wallet-connection
 import {
   createContext,
   useContext,
@@ -9,6 +10,11 @@ import {
   useCallback,
 } from 'react';
 import { getPublicKey } from '@stellar/freighter-api';
+
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { getAddress, isConnected, requestAccess } from '@stellar/freighter-api';
+import { getReputation } from '@/lib/stellar-interact';
+ main
 
 interface WalletContextType {
   publicKey: string | null;
@@ -21,6 +27,7 @@ interface WalletContextType {
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
+fix/issue-7-freighter-wallet-connection
 const STORAGE_KEY = 'vero_wallet_publicKey';
 const FREIGHTER_EVENT = 'freighter-account-change';
 
@@ -28,6 +35,34 @@ const FREIGHTER_EVENT = 'freighter-account-change';
  * WalletProvider component that manages Freighter wallet connection state
  * with localStorage persistence and event listeners.
  */
+
+function getFreighterErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === 'string' && message.trim()) {
+      return message;
+    }
+  }
+  return fallback;
+}
+
+async function loadReputation(publicKey: string, alertOnFailure: boolean): Promise<number> {
+  try {
+    return await getReputation(publicKey);
+  } catch (error) {
+    const message = 'Wallet connected, but Stellar reputation could not be loaded. Refresh the page or try again later.';
+    console.error('Failed to load Stellar reputation:', { publicKey, error });
+    if (alertOnFailure) {
+      alert(message);
+    }
+    return 0;
+  }
+}
+
+main
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +74,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const initializeWallet = async () => {
       try {
+ fix/issue-7-freighter-wallet-connection
         setIsLoading(true);
         setError(null);
 
@@ -50,6 +86,31 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error('Failed to initialize wallet:', err);
         setError('Failed to initialize wallet');
+
+        const connection = await isConnected();
+        if (connection.error) {
+          console.warn('Unable to restore Freighter connection: isConnected returned an error', connection.error);
+          return;
+        }
+        if (!connection.isConnected) {
+          return;
+        }
+
+        const address = await getAddress();
+        if (address.error) {
+          console.warn('Unable to restore Freighter connection: getAddress returned an error', address.error);
+          return;
+        }
+        if (!address.address) {
+          console.warn('Unable to restore Freighter connection: Freighter reported a connection without an address');
+          return;
+        }
+
+        setPublicKey(address.address);
+        setReputation(await loadReputation(address.address, false));
+      } catch (error) {
+        console.warn('Unable to restore Freighter connection:', error);
+ main
       } finally {
         setIsLoading(false);
       }
@@ -81,6 +142,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
    */
   const connect = useCallback(async () => {
     try {
+ fix/issue-7-freighter-wallet-connection
       setIsLoading(true);
       setError(null);
 
@@ -103,6 +165,27 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       throw err;
     } finally {
       setIsLoading(false);
+
+      const access = await requestAccess();
+      if (access.error) {
+        throw new Error(
+          getFreighterErrorMessage(access.error, 'Freighter could not grant wallet access. Open Freighter and try again.')
+        );
+      }
+      if (!access.address) {
+        throw new Error('Freighter did not return a wallet address. Unlock Freighter and try again.');
+      }
+
+      setPublicKey(access.address);
+      setReputation(await loadReputation(access.address, true));
+    } catch (error) {
+      const message = getFreighterErrorMessage(
+        error,
+        'Freighter wallet connection failed. Install or unlock Freighter, then try again.'
+      );
+      console.error('Failed to connect wallet with Freighter:', error);
+      alert(message);
+  main
     }
   }, []);
 
