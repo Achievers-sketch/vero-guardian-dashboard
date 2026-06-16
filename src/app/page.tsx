@@ -1,7 +1,6 @@
 'use client';
 
 import { useWallet } from '@/context/WalletContext';
-import ConnectButton from '@/components/ConnectButton';
 import PRFeed from '@/components/PRFeed';
 import TaskCard from '@/components/TaskCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -142,6 +141,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+    </Layout>
   );
 }

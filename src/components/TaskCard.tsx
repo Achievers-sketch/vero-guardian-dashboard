@@ -72,8 +72,8 @@ export default function TaskCard() {
             key={task.id}
             className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-sm"
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3 flex-1">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="flex items-start gap-3 flex-1 w-full">
                 {getStatusIcon(task.status)}
                 <div className="flex-1">
                   <div className="flex items-center gap-2">

@@ -94,7 +94,9 @@ export default function PRFeed() {
                 </span>
               </div>
             </div>
-            <VoteCard pr={pr} />
+            <div className="w-full sm:w-auto">
+              <VoteCard pr={pr} />
+            </div>
           </div>
         ))}
       </div>
