@@ -6,6 +6,7 @@ import { Activity, ArrowRight, CheckCircle2, Code2, Shield, Trophy } from 'lucid
 import { useTranslation } from 'react-i18next';
 import ConnectButton from '@/components/ConnectButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ForceSyncButton from '@/components/ForceSyncButton';
 import GasHeatmap from '@/components/GasHeatmap';
 import GlobalStateSearch from '@/components/GlobalStateSearch';
 import { AccessControl } from '@/components/Guard';
@@ -15,6 +16,7 @@ import PRFeed from '@/components/PRFeed';
 import SecurityScannerResults from '@/components/security';
 import TaskCard from '@/components/TaskCard';
 import ThemeToggle from '@/components/ThemeToggle';
+import TransactionFeed from '@/components/TransactionFeed';
 import Leaderboard from '@/components/leaderboard';
 import { useRole } from '@/context/RoleContext';
 import { useWallet } from '@/context/WalletContext';
@@ -115,6 +117,7 @@ export default function Home(): ReactElement {
             <div className="flex items-center gap-3">
               <LanguageToggle />
               <ThemeToggle />
+              <ForceSyncButton />
               <ConnectButton />
             </div>
           </div>

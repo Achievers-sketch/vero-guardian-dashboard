@@ -5,6 +5,7 @@ import { CheckCircle2, ExternalLink, Radio, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { getStellarExplorerTxUrl } from '@/lib/stellar-expert';
+import { useChainState } from '@/hooks/useChainState';
 
 const DEFAULT_HORIZON_URL =
   process.env.NEXT_PUBLIC_HORIZON_URL ?? 'https://horizon-testnet.stellar.org';
@@ -122,6 +123,7 @@ export default function TransactionFeed({
   const { t } = useTranslation();
   const [transactions, setTransactions] = useState<FeedTransaction[]>([]);
   const [status, setStatus] = useState<FeedConnectionStatus>('connecting');
+  const { syncVersion } = useChainState({ cacheKey: 'transactions', includeGlobal: false });
 
   const subscriber = useMemo<TransactionStreamSubscriber>(
     () => subscribe ?? createHorizonTransactionStream(),
@@ -160,7 +162,7 @@ export default function TransactionFeed({
       active = false;
       unsubscribe();
     };
-  }, [subscriber, maxEntries]);
+  }, [subscriber, maxEntries, syncVersion]);
 
   const statusStyle = STATUS_STYLES[status];
 

@@ -9,6 +9,15 @@ import TransactionFeed, {
   type TransactionStreamSubscriber,
 } from '../TransactionFeed';
 
+jest.mock('@/hooks/useChainState', () => ({
+  useChainState: () => ({
+    forceSync: async () => undefined,
+    isSyncing: false,
+    status: 'idle',
+    syncVersion: 0,
+  }),
+}));
+
 function makeRecord(overrides: Partial<HorizonTransactionRecord> = {}): HorizonTransactionRecord {
   return {
     id: 'tx-1',

@@ -4,6 +4,8 @@ import { castVote } from '@/services/contractClient';
 import { useRole } from '@/context/RoleContext';
 import { useToast } from '@/components/Toast';
 
+const mockForceSync = jest.fn();
+
 jest.mock('@/services/contractClient', () => ({
   castVote: jest.fn(),
 }));
@@ -11,6 +13,14 @@ jest.mock('@/context/RoleContext', () => ({
   useRole: jest.fn(),
 }));
 jest.mock('@/components/Toast');
+jest.mock('@/hooks/useChainState', () => ({
+  useChainState: () => ({
+    forceSync: mockForceSync,
+    isSyncing: false,
+    status: 'idle',
+    syncVersion: 0,
+  }),
+}));
 
 const mockCastVote = castVote as jest.MockedFunction<typeof castVote>;
 const mockUseRole = useRole as jest.MockedFunction<typeof useRole>;
@@ -43,6 +53,7 @@ beforeEach(() => {
   mockUseToast.mockReturnValue({ showToast: mockShowToast });
   mockRole();
   mockCastVote.mockResolvedValue('deafhash');
+  mockForceSync.mockResolvedValue(undefined);
 });
 
 afterEach(() => jest.clearAllMocks());
@@ -62,6 +73,9 @@ describe('VoteButton', () => {
     fireEvent.click(button);
 
     await waitFor(() => expect(mockCastVote).toHaveBeenCalledWith(42, 'GPUBKEY'));
+    expect(mockForceSync).toHaveBeenCalledWith(
+      expect.arrayContaining(['dashboard', 'prs', 'transactions', 'account:GPUBKEY', 'reputation:GPUBKEY']),
+    );
   });
 
   it('is disabled when no wallet is connected', () => {
