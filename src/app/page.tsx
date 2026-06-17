@@ -15,7 +15,7 @@ import PRFeed from '@/components/PRFeed';
 import SecurityScannerResults from '@/components/security';
 import TaskCard from '@/components/TaskCard';
 import ThemeToggle from '@/components/ThemeToggle';
-import TransactionFeed from '@/components/TransactionFeed';
+import Leaderboard from '@/components/leaderboard';
 import { useRole } from '@/context/RoleContext';
 import { useWallet } from '@/context/WalletContext';
 import type { UserRole } from '@/services/roleClient';
@@ -210,6 +210,13 @@ export default function Home(): ReactElement {
                 </div>
               </ErrorBoundary>
             </AccessControl>
+
+            {/* Leaderboard */}
+            <ErrorBoundary>
+              <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
+                <Leaderboard />
+              </div>
+            </ErrorBoundary>
 
             {/* Quick Actions */}
             <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg">
