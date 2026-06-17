@@ -9,6 +9,7 @@ import NetworkStatus from '@/components/NetworkStatus';
 import PRFeed from '@/components/PRFeed';
 import TaskCard from '@/components/TaskCard';
 import ThemeToggle from '@/components/ThemeToggle';
+import { WidgetGrid } from '@/components/DashboardLayout/WidgetGrid';
 import { useRole } from '@/context/RoleContext';
 import { useWallet } from '@/context/WalletContext';
 import type { UserRole } from '@/services/roleClient';
@@ -160,62 +161,70 @@ export default function Home(): ReactElement {
         </div>
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - PR Feed */}
-          <div className="lg:col-span-2">
-            <ErrorBoundary>
-              <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
-                <PRFeed />
-              </div>
-            </ErrorBoundary>
-          </div>
-
-          {/* Right Column - Admin Management & Quick Actions */}
-          <div className="space-y-6">
-            <AccessControl roles={['admin']}>
-              {/* Admin Management */}
-              <ErrorBoundary>
-                <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-3">
-                    Admin Management
-                  </p>
-                  <TaskCard />
+        <WidgetGrid 
+          widgets={[
+            {
+              id: 'pr-feed',
+              className: 'lg:col-span-2',
+              component: (
+                <ErrorBoundary>
+                  <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg h-full">
+                    <PRFeed />
+                  </div>
+                </ErrorBoundary>
+              )
+            },
+            ...(role === 'admin' ? [{
+              id: 'admin-management',
+              className: 'lg:col-span-1',
+              component: (
+                <ErrorBoundary>
+                  <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg h-full">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-3">
+                      Admin Management
+                    </p>
+                    <TaskCard />
+                  </div>
+                </ErrorBoundary>
+              )
+            }] : []),
+            {
+              id: 'quick-actions',
+              className: 'lg:col-span-1',
+              component: (
+                <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg h-full">
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                    <Code2 className="w-5 h-5 text-violet-600 dark:text-violet-400" aria-hidden="true" />
+                    Quick Actions
+                  </h3>
+                  <div className="space-y-3">
+                    <button 
+                      className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      aria-label="View Network Status"
+                    >
+                      <span className="font-medium">View Network Status</span>
+                      <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+                    </button>
+                    <button 
+                      className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      aria-label="Stake VERO Tokens"
+                    >
+                      <span className="font-medium">Stake VERO Tokens</span>
+                      <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+                    </button>
+                    <button 
+                      className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      aria-label="View Rewards History"
+                    >
+                      <span className="font-medium">Rewards History</span>
+                      <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
-              </ErrorBoundary>
-            </AccessControl>
-
-            {/* Quick Actions */}
-            <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                <Code2 className="w-5 h-5 text-violet-600 dark:text-violet-400" aria-hidden="true" />
-                Quick Actions
-              </h3>
-              <div className="space-y-3">
-                <button 
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label="View Network Status"
-                >
-                  <span className="font-medium">View Network Status</span>
-                  <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
-                </button>
-                <button 
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label="Stake VERO Tokens"
-                >
-                  <span className="font-medium">Stake VERO Tokens</span>
-                  <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
-                </button>
-                <button 
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label="View Rewards History"
-                >
-                  <span className="font-medium">Rewards History</span>
-                  <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+              )
+            }
+          ]}
+        />
       </main>
 
       {/* Footer */}
