@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { fetchPRMetadata } from '@/services/githubClient';
+import { generateAuditPDF, type AuditData } from '@/utils/report';
+import { Download } from 'lucide-react';
 
 interface AuditViewerProps {
   /**
@@ -52,6 +54,18 @@ export const AuditViewer: React.FC<AuditViewerProps> = ({ prHash }) => {
   const badgeColor = isMatch ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   const badgeLabel = isMatch ? t('audit.match') : t('audit.mismatch');
 
+  const handleDownload = () => {
+    const auditData: AuditData = {
+      hash: prData.hash,
+      title: prData.title,
+      author: prData.author,
+      url: prData.url,
+      isMatch,
+      generatedAt: new Date(),
+    };
+    generateAuditPDF(auditData);
+  };
+
   return (
     <div className="border rounded p-4 shadow-sm bg-white">
       <div className="flex items-center justify-between mb-2">
@@ -65,6 +79,15 @@ export const AuditViewer: React.FC<AuditViewerProps> = ({ prHash }) => {
       </p>
       <p className="text-xs text-gray-600">{t('audit.author', { author: prData.author })}</p>
       <p className="text-xs text-gray-600 mt-1">{t('audit.hash', { hash: prData.hash })}</p>
+      <div className="mt-4">
+        <button
+          onClick={handleDownload}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+        >
+          <Download size={16} />
+          {t('audit.downloadReport') || 'Download Report'}
+        </button>
+      </div>
     </div>
   );
 };
