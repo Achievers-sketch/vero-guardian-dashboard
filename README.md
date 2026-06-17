@@ -20,6 +20,7 @@ Guardians connect their [Freighter](https://www.freighter.app/) wallet, browse t
 - [Environment Variables](#environment-variables)
 - [Key Concepts](#key-concepts)
   - [Casting a Vote](#casting-a-vote)
+  - [Batch Transaction Builder](#batch-transaction-builder)
   - [Guardian Reputation](#guardian-reputation)
   - [Wallet Context](#wallet-context)
   - [Webhook Relayer](#webhook-relayer)
@@ -413,6 +414,30 @@ export function VoteCard({ pr }: { pr: PR }) {
   );
 }
 ```
+
+---
+
+### Batch Transaction Builder
+
+`src/services/txBuilder.ts` provides a reusable batch transaction engine for flows that need to submit more than one Stellar operation in a single wallet approval. It accepts an ordered operation list, loads or reuses safe account sequence state, builds one Stellar transaction, asks Freighter to sign the unsigned XDR, and submits the signed transaction through Horizon.
+
+```typescript
+import * as StellarSdk from '@stellar/stellar-sdk';
+import { signAndBroadcastBatchTransaction } from '@/services/txBuilder';
+
+const result = await signAndBroadcastBatchTransaction({
+  sourceAccount: publicKey,
+  networkPassphrase: StellarSdk.Networks.TESTNET,
+  operations: [
+    StellarSdk.Operation.manageData({ name: 'vote_42', value: 'approve' }),
+    StellarSdk.Operation.manageData({ name: 'audit_42', value: 'reviewed' }),
+  ],
+});
+
+console.log(result.hash);
+```
+
+For custom signing flows, call `buildBatchTransaction()` to get an unsigned envelope XDR, pass that XDR to the existing wallet signing flow, then submit with `broadcastSignedBatchTransaction()`. The builder only caches non-sensitive sequence metadata after successful submissions and invalidates that cache if Horizon returns `tx_bad_seq`.
 
 ---
 

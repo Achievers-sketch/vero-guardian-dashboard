@@ -34,8 +34,10 @@ export type DiffResult = {
   timestamp: string;
 };
 
-/** Simple in‑memory cache to avoid re‑fetching on‑chain data within a run */
-const onChainCache = new Map<string, ContractInfo>();
+type FetchOnChain = (address: string) => Promise<ContractInfo>;
+
+/** Simple in-memory cache to avoid re-fetching from the same on-chain source within a run. */
+const onChainCache = new WeakMap<FetchOnChain, Map<string, ContractInfo>>();
 
 /**
  * Compare two ABI arrays.
@@ -175,14 +177,20 @@ function compareState(repoState: Record<string, unknown>, onChainState: Record<s
  */
 export async function diffContract(
   address: string,
-  fetchOnChain: (address: string) => Promise<ContractInfo>,
+  fetchOnChain: FetchOnChain,
   repoInfo: ContractInfo
 ): Promise<DiffResult> {
   // Retrieve on‑chain data, using cache when possible.
-  let onChainInfo = onChainCache.get(address);
+  let fetcherCache = onChainCache.get(fetchOnChain);
+  if (!fetcherCache) {
+    fetcherCache = new Map<string, ContractInfo>();
+    onChainCache.set(fetchOnChain, fetcherCache);
+  }
+
+  let onChainInfo = fetcherCache.get(address);
   if (!onChainInfo) {
     onChainInfo = await fetchOnChain(address);
-    onChainCache.set(address, onChainInfo);
+    fetcherCache.set(address, onChainInfo);
   }
 
   const changes: DiffChange[] = [];
