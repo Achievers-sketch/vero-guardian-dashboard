@@ -15,5 +15,26 @@ const customJestConfig = {
   },
 };
 
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-module.exports = createJestConfig(customJestConfig);
+// D3 ships ESM-only packages that Jest must transform. next/jest sets its own
+// transformIgnorePatterns, so override it after the async config is built to
+// whitelist the d3 modules used by the gas heatmap.
+const d3EsmModules = [
+  'd3-scale',
+  'd3-scale-chromatic',
+  'd3-array',
+  'd3-color',
+  'd3-format',
+  'd3-interpolate',
+  'd3-time',
+  'd3-time-format',
+  'internmap',
+].join('|');
+
+module.exports = async () => {
+  const config = await createJestConfig(customJestConfig)();
+  config.transformIgnorePatterns = [
+    `/node_modules/(?!(?:${d3EsmModules})/)`,
+    '^.+\\.module\\.(css|sass|scss)$',
+  ];
+  return config;
+};

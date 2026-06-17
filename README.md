@@ -91,12 +91,15 @@ Each Guardian's trust score is tracked as `vero_reputation` on their Stellar acc
 <RootLayout>
   └── <WalletContext.Provider>
         └── <RoleContext.Provider>
-              ├── <ConnectButton />          # Freighter wallet connect/disconnect
+              ├── <ConnectButton />          # Multi-wallet picker (Freighter, Rabet)
               ├── <PRFeed />                 # Fetches open PRs, renders list
               │     └── <VoteCard pr={...} />  # Per-PR card with guarded vote button
+              ├── <TransactionFeed />        # Live Horizon transaction stream
+              ├── <GasHeatmap />             # Per-function gas usage heatmap (D3)
               ├── <AccessControl />          # Role-gated Admin vs Guardian UI
               ├── <ReputationBadge />        # Reads vero_reputation from Horizon
-              └── <Toast />                  # Success/error notifications
+              ├── <Toast />                  # Success/error notifications
+              └── <ErrorModal />             # Global, dismissible error dialog
 ```
 
 ---
@@ -179,6 +182,7 @@ GitHub Webhook  ──►  POST /github-webhook
 | Styling | Tailwind CSS | Utility-first UI |
 | Blockchain | [Stellar](https://stellar.org/) / Soroban | On-chain vote storage |
 | Wallet | [Freighter](https://www.freighter.app/) | Transaction signing |
+| Visualization | [D3](https://d3js.org/) (`d3-scale`, `d3-scale-chromatic`) | Gas usage heatmap |
 | Stellar SDK | `@stellar/stellar-base`, `@stellar/stellar-sdk` | TX building & Horizon calls |
 | Relayer | Node.js + Express | GitHub webhook ingestion |
 | HTTP Client | Axios | API requests |
@@ -203,14 +207,18 @@ vero-guardian-dashboard/
 │   ├── components/
 │   │   ├── VoteCard.tsx        # PR card with vote button + state
 │   │   ├── PRFeed.tsx          # Scrollable PR list
+│   │   ├── TransactionFeed/    # Live Horizon transaction stream feed
+│   │   ├── GasHeatmap/         # Per-function gas usage heatmap (D3)
 │   │   ├── ConnectButton.tsx   # Freighter connect/disconnect
 │   │   ├── TaskCard.tsx        # Generic task display card
 │   │   ├── Toast.tsx           # Success/error notification toasts
+│   │   ├── ErrorModal.tsx      # Reusable global error modal + useError() hook
 │   │   └── ErrorBoundary.tsx   # React error boundary wrapper
 │   ├── context/
 │   │   └── WalletContext.tsx   # Global wallet state (publicKey)
 │   ├── lib/
-│   │   └── stellar-interact.ts # castVote(), getReputation()
+│   │   ├── stellar-interact.ts # castVote(), getReputation()
+│   │   └── wallets/            # Stellar wallet provider adapters + registry
 │   └── utils/
 │       └── stellar-interact.ts # Utility re-exports
 ├── .env.example                # Required environment variables
@@ -453,16 +461,21 @@ export function ReputationBadge() {
 
 ### Wallet Context
 
-The `WalletContext` provides a resilient Freighter wallet connection state with localStorage-backed persistence that is verified against the current Freighter address before use.
+The `WalletContext` provides a resilient Stellar wallet connection state with localStorage-backed persistence, supporting multiple standard wallet providers through a pluggable adapter registry (`src/lib/wallets/`).
 
 Key features:
 
-- Stores the verified `publicKey` under `vero_wallet_publicKey` in `localStorage`.
-- Verifies persisted keys against Freighter `isConnected()`/`getAddress()` before restoring UI state.
+- **Multi-wallet support** — connect via any registered provider (currently [Freighter](https://www.freighter.app/) and [Rabet](https://rabet.io/)). `ConnectButton` renders a picker of detected wallets.
+- Stores the verified `publicKey` under `vero_wallet_publicKey` and the active provider id under `vero_wallet_provider` in `localStorage`.
+- Verifies persisted Freighter keys against `isConnected()`/`getAddress()` before restoring UI state; non-Freighter sessions require an explicit reconnect after reload.
 - `WatchWalletChanges` and `freighter-account-change` listeners clear or update wallet state when the active Freighter account changes.
-- `connect()` uses `@stellar/freighter-api`'s `requestAccess()` and surfaces errors.
-- `disconnect()` clears state and stored key.
-- Exposes `isLoading`, `error`, and `reputation` states for UI feedback.
+- `connect(providerId?)` resolves the chosen adapter (defaults to Freighter) and surfaces errors; passing an invalid value safely falls back to Freighter.
+- `disconnect()` clears state and stored keys.
+- Exposes `isLoading`, `error`, `reputation`, `activeProvider`, and `availableProviders` for UI feedback.
+
+#### Adding a wallet provider
+
+Implement the `StellarWalletProvider` interface (`id`, `name`, `isAvailable()`, `connect()`) in a new module under `src/lib/wallets/`, then add it to the `walletProviders` array in `src/lib/wallets/index.ts`. The picker and context pick it up automatically.
 
 API
 
@@ -471,19 +484,22 @@ API
 
 ```ts
 type UseWallet = {
-  publicKey: string | null;       // Stellar public key when connected
-  isConnected: boolean;          // shorthand for !!publicKey
-  isLoading: boolean;            // true while connecting or initializing
-  error: string | null;          // human-friendly error message
-  reputation: number;            // current reputation score shown in the dashboard
-  connect(): Promise<void>;      // prompts Freighter to return public key
-  disconnect(): void;            // clears key and localStorage
+  publicKey: string | null;              // Stellar public key when connected
+  isConnected: boolean;                  // shorthand for !!publicKey
+  isLoading: boolean;                    // true while connecting or initializing
+  error: string | null;                  // human-friendly error message
+  reputation: number;                    // current reputation score shown in the dashboard
+  activeProvider: WalletProviderId | null; // provider backing the connection
+  availableProviders: WalletProviderInfo[]; // detected wallets + availability
+  connect(providerId?: WalletProviderId): Promise<void>; // defaults to Freighter
+  disconnect(): void;                    // clears key and localStorage
 };
 ```
 
 Constants
 
-- Storage key: `vero_wallet_publicKey`
+- Public key storage key: `vero_wallet_publicKey`
+- Active provider storage key: `vero_wallet_provider`
 - Freighter event: `freighter-account-change`
 
 Example usage
@@ -535,6 +551,35 @@ Notes
 - Persisted wallet state is restored only after Freighter confirms the same current address.
 - Freighter wallet change listeners update or clear stored keys when the user switches accounts.
 
+### Error Modal
+
+`ErrorModal` provides a single, app-wide error dialog so error messaging stays consistent across the dashboard. The `ErrorProvider` is mounted once in the root layout, and any component can raise an error through the `useError()` hook — no need to wire up local modal state.
+
+```tsx
+import { useError } from '@/components/ErrorModal';
+
+export function VoteButton() {
+  const { showError } = useError();
+
+  async function handleVote() {
+    try {
+      await castVote();
+    } catch (err) {
+      showError({
+        title: 'Vote failed',
+        message: err instanceof Error ? err.message : 'Please try again.',
+        actionLabel: 'Retry',
+        onAction: handleVote,
+      });
+    }
+  }
+
+  return <button onClick={handleVote}>Vote</button>;
+}
+```
+
+`showError({ message })` is the only required field; `title` defaults to "Something went wrong". Passing `actionLabel`/`onAction` adds a primary action button (the action runs, then the modal closes). The modal is dismissible via its close button, the Cancel/Dismiss button, the backdrop, or the <kbd>Esc</kbd> key, and uses `role="alertdialog"` with labelled title/description for accessibility.
+
 ### Role Context
 
 `RoleContext` fetches the connected wallet's role from Horizon account data and exposes derived permissions for UI guards.
@@ -542,6 +587,52 @@ Notes
 Role data is read from `NEXT_PUBLIC_ROLE_REGISTRY_ACCOUNT` when configured; otherwise, the connected wallet account is inspected. Supported active role markers include `admin:<publicKey>`, `admin_<publicKey>`, `guardian:<publicKey>`, `guardian_<publicKey>`, and exact connected-account keys such as `admin`, `guardian`, or `role`.
 
 Use `AccessControl` to hide admin-only UI from Guardians and unauthorized wallets, and use `useRole()` to block direct UI handlers before invoking guarded actions.
+
+---
+
+### Live Transaction Feed
+
+`TransactionFeed` subscribes to Horizon's transaction stream (Server-Sent Events via `server.transactions().cursor('now').stream(...)`) and renders incoming network transactions in real time — newest first, capped at `MAX_FEED_ENTRIES` (25) and de-duplicated by transaction id. Each row links to the transaction on Stellar Expert, shows the source account, ledger sequence, operation count, and a success/failure indicator, with a live connection status badge.
+
+The stream source is injectable for testing and customization:
+
+```tsx
+import TransactionFeed, {
+  createHorizonTransactionStream,
+} from '@/components/TransactionFeed';
+
+// Default: live Horizon stream from NEXT_PUBLIC_HORIZON_URL (testnet fallback).
+<TransactionFeed />
+
+// Custom endpoint or a mock subscriber in tests.
+<TransactionFeed subscribe={createHorizonTransactionStream('https://horizon.stellar.org')} />
+```
+
+A `subscribe` prop receives `{ onMessage, onError }` and returns an unsubscribe function, so the component can be driven without a network connection in unit tests. The Horizon endpoint is read from `NEXT_PUBLIC_HORIZON_URL` (defaults to `https://horizon-testnet.stellar.org`).
+
+---
+
+### Gas Usage Heatmap
+
+`GasHeatmap` visualizes Soroban resource cost per contract function so gas spikes become obvious at a glance. Functions are rows; resource categories (CPU instructions, memory, ledger reads, ledger writes, events) are columns. Each cell is colored with a D3 sequential scale (`d3-scale-chromatic`'s `interpolateYlOrRd`) and positioned with `d3-scale`'s `scaleBand`. Color **intensity is normalized per metric column**, so the most expensive function for each resource stands out, and those cells are flagged as **hotspots** (also summarized below the grid) — satisfying "hotspots identified".
+
+```tsx
+import GasHeatmap, { type FunctionGasUsage } from '@/components/GasHeatmap';
+
+// Default: representative per-function costs for the Vero contract.
+<GasHeatmap />
+
+// Inject real data (e.g. from testnet transaction simulation).
+const usage: FunctionGasUsage[] = [
+  { functionName: 'cast_vote', costs: { cpuInsns: 12_500_000, memBytes: 524_288, ledgerReads: 8, ledgerWrites: 3, events: 2 } },
+  // ...
+];
+<GasHeatmap data={usage} />
+```
+
+The pure helpers `buildHeatmap()`, `findHotspots()`, and `formatGas()` are exported and unit-tested independently of rendering. The dataset is held in local component state and is injectable via the `data` prop, so a live testnet simulation feed can replace the default without changing the view.
+
+> **Jest note:** D3 v4+ ships ESM-only packages. `jest.config.js` overrides `transformIgnorePatterns` to transform the `d3-*` modules used here.
 
 ---
 
