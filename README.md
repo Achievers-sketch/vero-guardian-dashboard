@@ -21,6 +21,7 @@ Guardians connect their [Freighter](https://www.freighter.app/) wallet, browse t
 - [Key Concepts](#key-concepts)
   - [Casting a Vote](#casting-a-vote)
   - [Batch Transaction Builder](#batch-transaction-builder)
+  - [Security Scanner Results](#security-scanner-results)
   - [Guardian Reputation](#guardian-reputation)
   - [Wallet Context](#wallet-context)
   - [Webhook Relayer](#webhook-relayer)
@@ -438,6 +439,24 @@ console.log(result.hash);
 ```
 
 For custom signing flows, call `buildBatchTransaction()` to get an unsigned envelope XDR, pass that XDR to the existing wallet signing flow, then submit with `broadcastSignedBatchTransaction()`. The builder only caches non-sensitive sequence metadata after successful submissions and invalidates that cache if Horizon returns `tx_bad_seq`.
+
+---
+
+### Security Scanner Results
+
+`src/components/security/` provides a reusable UI module for static-analysis and vulnerability scanner JSON. The dashboard renders `<SecurityScannerResults />` with a local JSON input, and callers can also pass scanner output directly:
+
+```tsx
+import SecurityScannerResults from '@/components/security';
+
+<SecurityScannerResults results={scannerJson} />
+```
+
+Supported scanner fields include `id`, `ruleId`, `cve`, `title`, `message`, `description`, `severity`, `level`, `package`, `dependency`, `file`, `path`, `line`, `recommendation`, `fix`, and safe `http`/`https` URLs. Arrays, common `{ findings: [...] }` style objects, SARIF `runs[].results`, and npm-audit-style `vulnerabilities` maps are normalized into one warning shape.
+
+Severity is normalized case-insensitively: `critical`, `high`, `medium`, `moderate`, `low`, `info`, `warning`, and `error` are supported. `error` maps to `high`; `warning` and `moderate` map to `medium`; unknown values remain `unknown`.
+
+Scanner fields are treated as untrusted. The parser strips HTML/script/style markup, masks obvious secret/token/password values, rejects unsafe URL protocols such as `javascript:`, and the UI renders values as React text nodes without `dangerouslySetInnerHTML`.
 
 ---
 
