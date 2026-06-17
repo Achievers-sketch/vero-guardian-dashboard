@@ -95,6 +95,7 @@ Each Guardian's trust score is tracked as `vero_reputation` on their Stellar acc
               ├── <PRFeed />                 # Fetches open PRs, renders list
               │     └── <VoteCard pr={...} />  # Per-PR card with guarded vote button
               ├── <TransactionFeed />        # Live Horizon transaction stream
+              ├── <GasHeatmap />             # Per-function gas usage heatmap (D3)
               ├── <AccessControl />          # Role-gated Admin vs Guardian UI
               ├── <ReputationBadge />        # Reads vero_reputation from Horizon
               ├── <Toast />                  # Success/error notifications
@@ -181,6 +182,7 @@ GitHub Webhook  ──►  POST /github-webhook
 | Styling | Tailwind CSS | Utility-first UI |
 | Blockchain | [Stellar](https://stellar.org/) / Soroban | On-chain vote storage |
 | Wallet | [Freighter](https://www.freighter.app/) | Transaction signing |
+| Visualization | [D3](https://d3js.org/) (`d3-scale`, `d3-scale-chromatic`) | Gas usage heatmap |
 | Stellar SDK | `@stellar/stellar-base`, `@stellar/stellar-sdk` | TX building & Horizon calls |
 | Relayer | Node.js + Express | GitHub webhook ingestion |
 | HTTP Client | Axios | API requests |
@@ -206,6 +208,7 @@ vero-guardian-dashboard/
 │   │   ├── VoteCard.tsx        # PR card with vote button + state
 │   │   ├── PRFeed.tsx          # Scrollable PR list
 │   │   ├── TransactionFeed/    # Live Horizon transaction stream feed
+│   │   ├── GasHeatmap/         # Per-function gas usage heatmap (D3)
 │   │   ├── ConnectButton.tsx   # Freighter connect/disconnect
 │   │   ├── TaskCard.tsx        # Generic task display card
 │   │   ├── Toast.tsx           # Success/error notification toasts
@@ -606,6 +609,30 @@ import TransactionFeed, {
 ```
 
 A `subscribe` prop receives `{ onMessage, onError }` and returns an unsubscribe function, so the component can be driven without a network connection in unit tests. The Horizon endpoint is read from `NEXT_PUBLIC_HORIZON_URL` (defaults to `https://horizon-testnet.stellar.org`).
+
+---
+
+### Gas Usage Heatmap
+
+`GasHeatmap` visualizes Soroban resource cost per contract function so gas spikes become obvious at a glance. Functions are rows; resource categories (CPU instructions, memory, ledger reads, ledger writes, events) are columns. Each cell is colored with a D3 sequential scale (`d3-scale-chromatic`'s `interpolateYlOrRd`) and positioned with `d3-scale`'s `scaleBand`. Color **intensity is normalized per metric column**, so the most expensive function for each resource stands out, and those cells are flagged as **hotspots** (also summarized below the grid) — satisfying "hotspots identified".
+
+```tsx
+import GasHeatmap, { type FunctionGasUsage } from '@/components/GasHeatmap';
+
+// Default: representative per-function costs for the Vero contract.
+<GasHeatmap />
+
+// Inject real data (e.g. from testnet transaction simulation).
+const usage: FunctionGasUsage[] = [
+  { functionName: 'cast_vote', costs: { cpuInsns: 12_500_000, memBytes: 524_288, ledgerReads: 8, ledgerWrites: 3, events: 2 } },
+  // ...
+];
+<GasHeatmap data={usage} />
+```
+
+The pure helpers `buildHeatmap()`, `findHotspots()`, and `formatGas()` are exported and unit-tested independently of rendering. The dataset is held in local component state and is injectable via the `data` prop, so a live testnet simulation feed can replace the default without changing the view.
+
+> **Jest note:** D3 v4+ ships ESM-only packages. `jest.config.js` overrides `transformIgnorePatterns` to transform the `d3-*` modules used here.
 
 ---
 

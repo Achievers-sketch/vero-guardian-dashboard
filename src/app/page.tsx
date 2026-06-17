@@ -6,6 +6,7 @@ import { Activity, ArrowRight, CheckCircle2, Code2, Shield, Trophy } from 'lucid
 import { useTranslation } from 'react-i18next';
 import ConnectButton from '@/components/ConnectButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import GasHeatmap from '@/components/GasHeatmap';
 import GlobalStateSearch from '@/components/GlobalStateSearch';
 import { AccessControl } from '@/components/Guard';
 import LanguageToggle from '@/components/LanguageToggle';
@@ -234,6 +235,13 @@ export default function Home(): ReactElement {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Gas Usage Heatmap */}
+        <div className="mt-6">
+          <ErrorBoundary>
+            <GasHeatmap />
+          </ErrorBoundary>
         </div>
       </main>
 
