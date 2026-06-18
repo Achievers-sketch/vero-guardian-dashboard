@@ -5,6 +5,8 @@ import { useRole } from '@/context/RoleContext';
 import { useToast } from '@/components/Toast';
 import { appendAuditEvent } from '@/utils/logger';
 
+const mockForceSync = jest.fn();
+
 jest.mock('@/services/contractClient', () => ({
   castVote: jest.fn(),
 }));
@@ -48,6 +50,7 @@ beforeEach(() => {
   mockUseToast.mockReturnValue({ showToast: mockShowToast });
   mockRole();
   mockCastVote.mockResolvedValue('deafhash');
+  mockForceSync.mockResolvedValue(undefined);
 });
 
 afterEach(() => jest.clearAllMocks());

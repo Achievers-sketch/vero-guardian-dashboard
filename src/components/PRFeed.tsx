@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import VoteCard from '@/components/VoteCard';
 import { GitPullRequest, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useChainState } from '@/hooks/useChainState';
 
 interface PR {
   id: number;
@@ -18,9 +19,17 @@ export default function PRFeed() {
   const { t } = useTranslation();
   const [prs, setPrs] = useState<PR[]>([]);
   const [loading, setLoading] = useState(true);
-  const { publicKey } = useWallet();
+  const hasLoadedRef = useRef(false);
+  const { syncVersion } = useChainState({ cacheKey: 'prs' });
 
   useEffect(() => {
+    const isFirstLoad = !hasLoadedRef.current;
+    let isMounted = true;
+
+    if (isFirstLoad) {
+      setLoading(true);
+    }
+
     // Mock data - replace with real API fetch
     const mockPRs: PR[] = [
       {
@@ -49,11 +58,21 @@ export default function PRFeed() {
       },
     ];
 
-    setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
+      if (!isMounted) {
+        return;
+      }
+
       setPrs(mockPRs);
       setLoading(false);
-    }, 800);
-  }, []);
+      hasLoadedRef.current = true;
+    }, isFirstLoad ? 800 : 0);
+
+    return () => {
+      isMounted = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [syncVersion]);
 
   if (loading) {
     return (
