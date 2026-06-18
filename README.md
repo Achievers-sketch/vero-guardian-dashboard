@@ -448,6 +448,20 @@ console.log(result.hash);
 
 For custom signing flows, call `buildBatchTransaction()` to get an unsigned envelope XDR, pass that XDR to the existing wallet signing flow, then submit with `broadcastSignedBatchTransaction()`. The builder only caches non-sensitive sequence metadata after successful submissions and invalidates that cache if Horizon returns `tx_bad_seq`.
 
+#### Builder UI
+
+`src/components/BatchTxBuilder` is the Guardian-facing interface for that engine. Operations are composed and edited entirely in local React state — add vote, manage-data, or native payment operations, reorder them to control execution order, and remove any before submitting — so the batch can be assembled with no network round-trips. Each draft is validated as it is entered (PR numbers, data-name byte limits, Stellar destination addresses, and amounts) and is only converted into a `StellarOperation` at build time, so a malformed operation can never reach signing.
+
+```tsx
+import BatchTxBuilder from '@/components/BatchTxBuilder';
+
+// Reads the connected key from WalletContext and broadcasts through
+// the shared batch transaction builder in a single wallet approval.
+<BatchTxBuilder />
+```
+
+Pressing **Build & broadcast** maps the queue to ordered operations and calls `signAndBroadcastBatchTransaction()`, so the whole batch is signed and submitted as one transaction. A `broadcaster` prop can be supplied to inject a custom builder (used in tests). No private keys are handled, requested, logged, or stored.
+
 ---
 
 ### Security Scanner Results
