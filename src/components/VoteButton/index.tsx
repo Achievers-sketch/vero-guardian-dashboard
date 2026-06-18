@@ -109,6 +109,11 @@ export default function VoteButton({ prId, publicKey }: VoteButtonProps): ReactE
   const [voted, setVoted] = useState(false);
   const [loading, setLoading] = useState(false);
   const { canVote, isLoading: isRoleLoading } = useRole();
+  const { forceSync } = useChainState({
+    cacheKeys: publicKey
+      ? ['dashboard', 'prs', 'transactions', `account:${publicKey}`, `reputation:${publicKey}`]
+      : ['dashboard', 'prs', 'transactions'],
+  });
   const hasPublicKey = Boolean(publicKey);
   const voteButtonState = getVoteButtonState(
     voted,
@@ -153,7 +158,7 @@ export default function VoteButton({ prId, publicKey }: VoteButtonProps): ReactE
         console.error('Unable to append vote audit log', error);
       });
       const explorerUrl = getStellarExplorerTxUrl(hash);
-showToast(`${t('vote.toast.recorded')} — <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">tx ${hash.slice(0, 8)}…</a>`, 'success');
+      showToast(`${t('vote.toast.recorded')} — <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">tx ${hash.slice(0, 8)}…</a>`, 'success');
     } catch (err) {
       const message = err instanceof Error ? err.message : t('vote.toast.failed');
       void appendAuditEvent({

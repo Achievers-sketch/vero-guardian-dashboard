@@ -6,6 +6,7 @@ import { Activity, ArrowRight, CheckCircle2, Code2, Shield, Trophy } from 'lucid
 import { useTranslation } from 'react-i18next';
 import ConnectButton from '@/components/ConnectButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ForceSyncButton from '@/components/ForceSyncButton';
 import GasHeatmap from '@/components/GasHeatmap';
 import GlobalStateSearch from '@/components/GlobalStateSearch';
 import { AccessControl } from '@/components/Guard';
@@ -118,6 +119,7 @@ export default function Home(): ReactElement {
               <PushNotificationToggle />
               <LanguageToggle />
               <ThemeToggle />
+              <ForceSyncButton />
               <ConnectButton />
             </div>
           </div>

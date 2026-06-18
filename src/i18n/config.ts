@@ -56,6 +56,11 @@ export const resources = {
       theme: {
         ariaLabel: 'Current theme is {{theme}}. Click to change theme.',
       },
+      sync: {
+        force: 'Force Sync',
+        forceAria: 'Force chain state sync. Current sync status: {{status}}.',
+        syncing: 'Syncing',
+      },
       role: {
         checking: 'Checking...',
         checkingOnChain: 'Checking on-chain role',
@@ -248,6 +253,11 @@ export const resources = {
       theme: {
         ariaLabel: 'El tema actual es {{theme}}. Haz clic para cambiar el tema.',
       },
+      sync: {
+        force: 'Forzar sync',
+        forceAria: 'Forzar sincronizacion del estado on-chain. Estado actual: {{status}}.',
+        syncing: 'Sincronizando',
+      },
       role: {
         checking: 'Verificando...',
         checkingOnChain: 'Verificando rol en cadena',
@@ -439,6 +449,11 @@ export const resources = {
       },
       theme: {
         ariaLabel: 'Le theme actuel est {{theme}}. Cliquez pour changer de theme.',
+      },
+      sync: {
+        force: 'Forcer sync',
+        forceAria: 'Forcer la synchronisation de l etat on-chain. Statut actuel: {{status}}.',
+        syncing: 'Synchronisation',
       },
       role: {
         checking: 'Verification...',
