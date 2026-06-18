@@ -5,8 +5,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { WalletProvider } from '@/context/WalletContext';
 import { RoleProvider } from '@/context/RoleContext';
 import { ToastProvider } from '@/components/Toast';
-import { ErrorProvider } from '@/components/ErrorModal';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { ThemeProvider, themeScript } from '@/context/ThemeContext';
 import { I18nProvider } from '@/i18n';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -22,7 +21,14 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps): ReactElement {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" className={inter.className} suppressHydrationWarning>
+      <head>
+        {/*
+          Anti-flicker script: runs synchronously before first paint to apply
+          the correct dark/light class from localStorage, preventing theme flash.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
         <I18nProvider>
           <ThemeProvider>
