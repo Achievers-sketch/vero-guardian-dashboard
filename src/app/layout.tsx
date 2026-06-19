@@ -8,6 +8,7 @@ import { ToastProvider } from '@/components/Toast';
 import { ErrorProvider } from '@/components/ErrorModal';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { I18nProvider } from '@/i18n';
+import { NetworkProvider } from '@/context/NetworkContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,13 +27,15 @@ export default function RootLayout({ children }: RootLayoutProps): ReactElement 
       <body className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
         <I18nProvider>
           <ThemeProvider>
-            <WalletProvider>
-              <RoleProvider>
-                <ToastProvider>
-                  {children}
-                </ToastProvider>
-              </RoleProvider>
-            </WalletProvider>
+            <NetworkProvider>
+              <WalletProvider>
+                <RoleProvider>
+                  <ToastProvider>
+                    {children}
+                  </ToastProvider>
+                </RoleProvider>
+              </WalletProvider>
+            </NetworkProvider>
           </ThemeProvider>
         </I18nProvider>
       </body>
