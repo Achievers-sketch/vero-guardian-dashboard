@@ -1,12 +1,11 @@
 'use client';
 
-import { useMemo, useState, type ReactElement } from 'react';
+import { type ReactElement } from 'react';
 import { ChevronLeft, ChevronRight, Clock, GitCompare } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { usePlayback } from '@/hooks/usePlayback';
 import {
-  appendSnapshot,
   DEFAULT_CONTRACT_HISTORY,
-  diffSnapshots,
   formatSnapshotTime,
   formatStateValue,
   type ContractStateSnapshot,
@@ -21,7 +20,7 @@ interface SliderProps {
   value: number;
   max: number;
   onChange: (index: number) => void;
-  snapshots: ContractStateSnapshot[];
+  snapshots: readonly ContractStateSnapshot[];
 }
 
 function TimelineSlider({ value, max, onChange, snapshots }: SliderProps): ReactElement {
@@ -232,21 +231,13 @@ export default function ContractTimeTraveler({
 }: ContractTimeTravelerProps): ReactElement {
   const { t } = useTranslation();
 
-  // Local snapshot cache — supports future live-append via the exported helper
-  const [history] = useState<ContractStateSnapshot[]>(() =>
-    // Clamp to cache limit on initial mount
-    appendSnapshot(initialHistory.slice(0, -1), initialHistory[initialHistory.length - 1] ?? initialHistory[0]),
-  );
-
-  const [selectedIndex, setSelectedIndex] = useState<number>(history.length - 1);
-
-  const selectedSnapshot = history[selectedIndex] ?? null;
-
-  // Compute diff against the immediately preceding snapshot (memoized)
-  const diff = useMemo<SnapshotDiff | null>(() => {
-    if (selectedIndex === 0 || history.length < 2) return null;
-    return diffSnapshots(history, selectedIndex - 1, selectedIndex);
-  }, [history, selectedIndex]);
+  const {
+    currentIndex,
+    currentSnapshot,
+    history,
+    goTo,
+    diff,
+  } = usePlayback({ initialHistory });
 
   if (history.length === 0) {
     return (
@@ -286,22 +277,22 @@ export default function ContractTimeTraveler({
             {t('contractTimeTraveler.heading')}
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            {selectedSnapshot?.contractId}
+            {currentSnapshot?.contractId}
           </p>
         </div>
       </div>
 
       {/* Timeline slider */}
       <TimelineSlider
-        value={selectedIndex}
+        value={currentIndex}
         max={history.length - 1}
-        onChange={setSelectedIndex}
+        onChange={goTo}
         snapshots={history}
       />
 
       {/* Snapshot detail */}
-      {selectedSnapshot && (
-        <SnapshotDetail snapshot={selectedSnapshot} diff={diff} />
+      {currentSnapshot && (
+        <SnapshotDetail snapshot={currentSnapshot} diff={diff} />
       )}
     </section>
   );
