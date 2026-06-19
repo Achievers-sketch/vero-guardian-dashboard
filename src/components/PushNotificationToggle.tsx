@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Bell, BellOff, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 async function urlBase64ToUint8Array(base64String: string): Promise<Uint8Array> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -17,6 +18,7 @@ async function urlBase64ToUint8Array(base64String: string): Promise<Uint8Array> 
 }
 
 export default function PushNotificationToggle() {
+  const { t } = useTranslation();
   const [isSupported, setIsSupported] = useState(
     () =>
       typeof window !== 'undefined' &&
@@ -57,7 +59,7 @@ export default function PushNotificationToggle() {
     if (permission !== 'granted') {
       const nextPermission = await Notification.requestPermission();
       if (nextPermission !== 'granted') {
-        setError('Notification permission was not granted.');
+        setError(t('pushNotification.permissionDenied'));
         return;
       }
     }
@@ -65,13 +67,14 @@ export default function PushNotificationToggle() {
     const pushManager = registration.pushManager as PushManager;
     const existingSubscription = await pushManager.getSubscription();
     if (existingSubscription) {
+      await savePushSubscription(existingSubscription);
       setIsSubscribed(true);
       return;
     }
 
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidPublicKey) {
-      setError('Push notifications are not configured yet.');
+      setError(t('pushNotification.notConfigured'));
       return;
     }
 
@@ -84,6 +87,8 @@ export default function PushNotificationToggle() {
       userVisibleOnly: true,
       applicationServerKey: applicationServerKeyBuffer,
     });
+
+    await savePushSubscription(subscription);
 
     const response = await fetch('/api/push', {
       method: 'POST',
@@ -116,17 +121,28 @@ export default function PushNotificationToggle() {
       return;
     }
 
-    void registerServiceWorker()
-      .then(async (registration) => {
-        if (!registration || !registration.pushManager) {
-          return;
+    const checkSubscription = async () => {
+      const localSubscription = await getPushSubscription();
+      if (localSubscription) {
+        setIsSubscribed(true);
+        return;
+      }
+
+      const registration = await registerServiceWorker();
+      if (registration?.pushManager) {
+        const swSubscription = await registration.pushManager.getSubscription();
+        setIsSubscribed(Boolean(swSubscription));
+        if (swSubscription) {
+          await savePushSubscription(swSubscription);
         }
+      }
+    };
 
         const subscription = await registration.pushManager.getSubscription();
         setIsSubscribed(Boolean(subscription));
       })
       .catch(() => {
-        setError('Unable to initialize push notifications.');
+        setError(t('pushNotification.initError'));
       });
   }, [registerServiceWorker]);
 
@@ -142,14 +158,14 @@ export default function PushNotificationToggle() {
           setIsLoading(true);
           void subscribeToPush()
             .catch(() => {
-              setError('Unable to enable push notifications.');
+              setError(t('pushNotification.enableError'));
             })
             .finally(() => {
               setIsLoading(false);
             });
         }}
         className="flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        aria-label={isSubscribed ? 'Disable alerts' : 'Enable alerts'}
+        aria-label={isSubscribed ? t('pushNotification.disableAlerts') : t('pushNotification.enableAlerts')}
       >
         {isLoading ? (
           <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
@@ -158,7 +174,7 @@ export default function PushNotificationToggle() {
         ) : (
           <Bell className="w-4 h-4" aria-hidden="true" />
         )}
-        <span className="text-sm font-medium">{isSubscribed ? 'Alerts on' : 'Enable alerts'}</span>
+        <span className="text-sm font-medium">{isSubscribed ? t('pushNotification.alertsOn') : t('pushNotification.enableAlerts')}</span>
       </button>
       {error ? <p className="text-xs text-red-600 dark:text-red-400">{error}</p> : null}
     </div>
