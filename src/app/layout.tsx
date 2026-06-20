@@ -32,9 +32,11 @@ export default function RootLayout({ children }: RootLayoutProps): ReactElement 
               <NetworkProvider>
                 <WalletProvider>
                   <RoleProvider>
-                    <ToastProvider>
-                      {children}
-                    </ToastProvider>
+                    <ErrorProvider>
+                      <ToastProvider>
+                        {children}
+                      </ToastProvider>
+                    </ErrorProvider>
                   </RoleProvider>
                 </WalletProvider>
               </NetworkProvider>

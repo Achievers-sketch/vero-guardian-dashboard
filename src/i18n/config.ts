@@ -158,6 +158,13 @@ export const resources = {
           recorded: 'Vote recorded',
           failed: 'Vote failed',
         },
+        tx: {
+          pending: 'Waiting for Freighter signature…',
+          success: 'Vote recorded on-chain.',
+          viewTx: 'View transaction',
+          errorUserRejected: 'Signature rejected. Open Freighter and try again.',
+          errorNetwork: 'Transaction failed due to a network or contract error. Please try again.',
+        },
       },
       network: {
         ariaLabel: 'Stellar RPC network status',
@@ -515,6 +522,13 @@ export const resources = {
           recorded: 'Voto registrado',
           failed: 'El voto fallo',
         },
+        tx: {
+          pending: 'Esperando firma de Freighter…',
+          success: 'Voto registrado en la cadena.',
+          viewTx: 'Ver transaccion',
+          errorUserRejected: 'Firma rechazada. Abre Freighter e intenta de nuevo.',
+          errorNetwork: 'La transaccion fallo por un error de red o de contrato. Por favor intenta de nuevo.',
+        },
       },
       network: {
         ariaLabel: 'Estado de red Stellar RPC',
@@ -871,6 +885,13 @@ export const resources = {
           notGuardian: 'Gardien non autorise',
           recorded: 'Vote enregistre',
           failed: 'Echec du vote',
+        },
+        tx: {
+          pending: 'En attente de la signature Freighter…',
+          success: 'Vote enregistre sur la chaine.',
+          viewTx: 'Voir la transaction',
+          errorUserRejected: 'Signature refusee. Ouvrez Freighter et reessayez.',
+          errorNetwork: 'La transaction a echoue en raison d une erreur reseau ou de contrat. Veuillez reessayer.',
         },
       },
       network: {

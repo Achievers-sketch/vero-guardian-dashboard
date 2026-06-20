@@ -1,16 +1,16 @@
 'use client';
 
 import type { ReactElement } from 'react';
-import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
-import { castVote } from '@/services/contractClient';
-import { getStellarExplorerTxUrl } from '@/lib/stellar-expert';
 import { useToast } from '@/components/Toast';
 import { useRole } from '@/context/RoleContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { useChainState } from '@/hooks/useChainState';
-import { appendAuditEvent } from '@/utils/logger';
+import { useVoteTransaction } from '@/hooks/useVoteTransaction';
+import TransactionNotification from '@/components/TransactionNotification';
+import { getStellarExplorerTxUrl } from '@/lib/stellar-expert';
 
 interface VoteButtonProps {
   prId: number;
@@ -22,7 +22,7 @@ const VOTE_BUTTON_BASE_CLASSNAME =
 
 type VoteButtonState =
   | 'voted'
-  | 'signing'
+  | 'pending'
   | 'checking-access'
   | 'missing-wallet'
   | 'unauthorized'
@@ -30,31 +30,16 @@ type VoteButtonState =
 
 function getVoteButtonState(
   voted: boolean,
-  loading: boolean,
+  isPending: boolean,
   isRoleLoading: boolean,
   hasPublicKey: boolean,
   canVote: boolean,
 ): VoteButtonState {
-  if (voted) {
-    return 'voted';
-  }
-
-  if (loading) {
-    return 'signing';
-  }
-
-  if (isRoleLoading) {
-    return 'checking-access';
-  }
-
-  if (!hasPublicKey) {
-    return 'missing-wallet';
-  }
-
-  if (!canVote) {
-    return 'unauthorized';
-  }
-
+  if (voted) return 'voted';
+  if (isPending) return 'pending';
+  if (isRoleLoading) return 'checking-access';
+  if (!hasPublicKey) return 'missing-wallet';
+  if (!canVote) return 'unauthorized';
   return 'ready';
 }
 
@@ -62,7 +47,7 @@ function getVoteAriaLabel(prId: number, state: VoteButtonState, t: TFunction): s
   switch (state) {
     case 'voted':
       return t('vote.aria.voted', { prId });
-    case 'signing':
+    case 'pending':
       return t('vote.aria.signing', { prId });
     case 'checking-access':
       return t('vote.aria.checkingAccess', { prId });
@@ -79,7 +64,7 @@ function getVoteButtonClassName(state: VoteButtonState): string {
   switch (state) {
     case 'voted':
       return `${VOTE_BUTTON_BASE_CLASSNAME} bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 cursor-default`;
-    case 'signing':
+    case 'pending':
     case 'checking-access':
       return `${VOTE_BUTTON_BASE_CLASSNAME} bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 cursor-wait`;
     case 'missing-wallet':
@@ -90,12 +75,17 @@ function getVoteButtonClassName(state: VoteButtonState): string {
   }
 }
 
-function getVoteButtonText(state: VoteButtonState, t: TFunction): string {
+function getVoteButtonContent(state: VoteButtonState, t: TFunction): ReactElement | string {
   switch (state) {
     case 'voted':
       return `✓ ${t('vote.voted')}`;
-    case 'signing':
-      return t('vote.signing');
+    case 'pending':
+      return (
+        <span className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+          {t('vote.signing')}
+        </span>
+      );
     case 'checking-access':
       return t('vote.checking');
     case 'unauthorized':
@@ -108,29 +98,30 @@ function getVoteButtonText(state: VoteButtonState, t: TFunction): string {
 export default function VoteButton({ prId, publicKey }: VoteButtonProps): ReactElement {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  const [voted, setVoted] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { canVote, isLoading: isRoleLoading } = useRole();
   const { networkConfig } = useNetwork();
-  const { forceSync } = useChainState({
+  useChainState({
     cacheKeys: publicKey
       ? ['dashboard', 'prs', 'transactions', `account:${publicKey}`, `reputation:${publicKey}`]
       : ['dashboard', 'prs', 'transactions'],
   });
+
+  const { state: txState, submit, reset } = useVoteTransaction({
+    prId,
+    publicKey: publicKey ?? '',
+    horizonUrl: networkConfig.horizonUrl,
+    networkPassphrase: networkConfig.networkPassphrase,
+  });
+
+  const voted = txState.status === 'success';
+  const isPending = txState.status === 'pending';
   const hasPublicKey = Boolean(publicKey);
-  const voteButtonState = getVoteButtonState(
-    voted,
-    loading,
-    isRoleLoading,
-    hasPublicKey,
-    canVote,
-  );
+
+  const voteButtonState = getVoteButtonState(voted, isPending, isRoleLoading, hasPublicKey, canVote);
   const isDisabled = voteButtonState !== 'ready';
 
   async function handleVote(): Promise<void> {
-    if (voted || loading) {
-      return;
-    }
+    if (isDisabled) return;
 
     if (!publicKey) {
       showToast(t('vote.toast.connectWallet'), 'warning');
@@ -142,60 +133,29 @@ export default function VoteButton({ prId, publicKey }: VoteButtonProps): ReactE
       return;
     }
 
-    setLoading(true);
-    try {
-      const hash = await castVote(
-        prId,
-        publicKey,
-        networkConfig.horizonUrl,
-        networkConfig.networkPassphrase
+    const result = await submit();
+
+    // Mirror into the global toast so it's visible regardless of scroll position.
+    if (result.status === 'success' && result.txHash) {
+      const explorerUrl = getStellarExplorerTxUrl(result.txHash);
+      showToast(
+        `${t('vote.toast.recorded')} — <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">tx ${result.txHash.slice(0, 8)}…</a>`,
+        'success',
       );
-      setVoted(true);
-      void appendAuditEvent({
-        id: `vote-${prId}-${hash}`,
-        type: 'guardian.vote',
-        actor: publicKey,
-        action: 'vote_submitted',
-        resource: 'pull_request',
-        resourceId: prId,
-        status: 'success',
-        metadata: {
-          transactionHash: hash,
-        },
-      }).catch((error) => {
-        console.error('Unable to append vote audit log', error);
-      });
-      const explorerUrl = getStellarExplorerTxUrl(hash);
-      showToast(`${t('vote.toast.recorded')} — <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">tx ${hash.slice(0, 8)}…</a>`, 'success');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : t('vote.toast.failed');
-      void appendAuditEvent({
-        type: 'guardian.vote',
-        actor: publicKey,
-        action: 'vote_failed',
-        resource: 'pull_request',
-        resourceId: prId,
-        status: 'failure',
-        metadata: {
-          error: message,
-        },
-      }).catch((error) => {
-        console.error('Unable to append failed vote audit log', error);
-      });
-      showToast(message, 'error');
-    } finally {
-      setLoading(false);
     }
   }
 
   return (
-    <button
-      onClick={handleVote}
-      disabled={isDisabled}
-      aria-label={getVoteAriaLabel(prId, voteButtonState, t)}
-      className={getVoteButtonClassName(voteButtonState)}
-    >
-      {getVoteButtonText(voteButtonState, t)}
-    </button>
+    <div className="flex flex-col gap-1.5">
+      <button
+        onClick={handleVote}
+        disabled={isDisabled}
+        aria-label={getVoteAriaLabel(prId, voteButtonState, t)}
+        className={getVoteButtonClassName(voteButtonState)}
+      >
+        {getVoteButtonContent(voteButtonState, t)}
+      </button>
+      <TransactionNotification state={txState} onDismiss={reset} />
+    </div>
   );
 }
