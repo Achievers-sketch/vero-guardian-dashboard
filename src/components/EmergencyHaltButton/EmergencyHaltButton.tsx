@@ -10,6 +10,7 @@ import { useRole } from '@/context/RoleContext';
 import { useWallet } from '@/context/WalletContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { useChainState } from '@/hooks/useChainState';
+import { useEvents } from '@/hooks/useEvents';
 import { appendAuditEvent } from '@/utils/logger';
 
 const CONTRACT_ID = (process.env.NEXT_PUBLIC_CONTRACT_ID ?? '').trim();
@@ -91,6 +92,7 @@ export default function EmergencyHaltButton(): ReactElement {
   const [isConfirming, setIsConfirming] = useState(false);
   const [isHalting, setIsHalting] = useState(false);
   const [isHalted, setIsHalted] = useState(false);
+  const { emit: emitEvent } = useEvents();
 
   const hasPublicKey = Boolean(publicKey);
   const hasContractId = Boolean(CONTRACT_ID);
@@ -135,6 +137,7 @@ export default function EmergencyHaltButton(): ReactElement {
       );
 
       setIsHalted(true);
+      emitEvent({ type: 'emergency_halt', actor: publicKey, resource: 'contract', resourceId: CONTRACT_ID, metadata: { transactionHash: hash } });
       void appendAuditEvent({
         id: `halt-${hash}`,
         type: 'admin.emergency_halt',
@@ -155,6 +158,7 @@ export default function EmergencyHaltButton(): ReactElement {
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : t('emergencyHalt.toast.failed');
+      emitEvent({ type: 'emergency_halt', actor: publicKey, resource: 'contract', resourceId: CONTRACT_ID, metadata: { error: message } });
       void appendAuditEvent({
         type: 'admin.emergency_halt',
         actor: publicKey,

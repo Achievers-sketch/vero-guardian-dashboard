@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWallet } from '@/context/WalletContext';
 import { Wallet, LogOut, Loader2, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useEvents } from '@/hooks/useEvents';
 import type { WalletProviderId } from '@/lib/wallets';
 
 export default function ConnectButton() {
