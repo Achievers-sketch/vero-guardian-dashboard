@@ -374,6 +374,15 @@ export const resources = {
       vulnerabilityList: {
         empty: 'No vulnerability findings loaded.',
       },
+      ipfsDocViewer: {
+        heading: 'IPFS Documentation Viewer',
+        inputAriaLabel: 'IPFS content identifier (CID)',
+        placeholder: 'Enter IPFS CID (Qm... or bafy...)',
+        load: 'Load',
+        invalidHash: 'Invalid IPFS hash. Must be a CIDv0 (Qm...) or CIDv1 (bafy...) identifier.',
+        iframeTitle: 'IPFS document {{hash}}',
+        empty: 'Enter an IPFS CID above to load documentation.',
+      },
     },
   },
   es: {
@@ -731,6 +740,15 @@ export const resources = {
       vulnerabilityList: {
         empty: 'No hay hallazgos de vulnerabilidad cargados.',
       },
+      ipfsDocViewer: {
+        heading: 'Visor de documentacion IPFS',
+        inputAriaLabel: 'Identificador de contenido IPFS (CID)',
+        placeholder: 'Introduce el CID IPFS (Qm... o bafy...)',
+        load: 'Cargar',
+        invalidHash: 'Hash IPFS no valido. Debe ser un CIDv0 (Qm...) o CIDv1 (bafy...).',
+        iframeTitle: 'Documento IPFS {{hash}}',
+        empty: 'Introduce un CID IPFS para cargar la documentacion.',
+      },
     },
   },
   fr: {
@@ -1087,6 +1105,15 @@ export const resources = {
       },
       vulnerabilityList: {
         empty: 'Aucune decouverte de vulnerabilite chargee.',
+      },
+      ipfsDocViewer: {
+        heading: 'Visionneuse de documentation IPFS',
+        inputAriaLabel: 'Identifiant de contenu IPFS (CID)',
+        placeholder: 'Entrer le CID IPFS (Qm... ou bafy...)',
+        load: 'Charger',
+        invalidHash: 'Hash IPFS invalide. Doit etre un CIDv0 (Qm...) ou CIDv1 (bafy...).',
+        iframeTitle: 'Document IPFS {{hash}}',
+        empty: 'Entrez un CID IPFS pour charger la documentation.',
       },
     },
   },
