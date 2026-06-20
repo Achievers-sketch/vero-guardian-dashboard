@@ -10,6 +10,7 @@ import { useToast } from '@/components/Toast';
 import { useRole } from '@/context/RoleContext';
 import { useNetwork } from '@/context/NetworkContext';
 import { useChainState } from '@/hooks/useChainState';
+import { useEvents } from '@/hooks/useEvents';
 import { appendAuditEvent } from '@/utils/logger';
 
 interface VoteButtonProps {
@@ -108,6 +109,7 @@ function getVoteButtonText(state: VoteButtonState, t: TFunction): string {
 export default function VoteButton({ prId, publicKey }: VoteButtonProps): ReactElement {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  const { emit } = useEvents();
   const [voted, setVoted] = useState(false);
   const [loading, setLoading] = useState(false);
   const { canVote, isLoading: isRoleLoading } = useRole();
@@ -151,6 +153,7 @@ export default function VoteButton({ prId, publicKey }: VoteButtonProps): ReactE
         networkConfig.networkPassphrase
       );
       setVoted(true);
+      emit({ type: 'vote', actor: publicKey, resource: 'pull_request', resourceId: prId, metadata: { transactionHash: hash } });
       void appendAuditEvent({
         id: `vote-${prId}-${hash}`,
         type: 'guardian.vote',
@@ -169,6 +172,7 @@ export default function VoteButton({ prId, publicKey }: VoteButtonProps): ReactE
       showToast(`${t('vote.toast.recorded')} — <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">tx ${hash.slice(0, 8)}…</a>`, 'success');
     } catch (err) {
       const message = err instanceof Error ? err.message : t('vote.toast.failed');
+      emit({ type: 'vote', actor: publicKey, resource: 'pull_request', resourceId: prId, metadata: { error: message } });
       void appendAuditEvent({
         type: 'guardian.vote',
         actor: publicKey,

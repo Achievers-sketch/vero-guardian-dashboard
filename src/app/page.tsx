@@ -4,16 +4,18 @@ import type { ReactElement } from 'react';
 import type { TFunction } from 'i18next';
 import { Activity, ArrowRight, CheckCircle2, Code2, Shield, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import ConnectButton from '@/components/ConnectButton';
 import AuditSessionTimer from '@/components/AuditSessionTimer';
+import ConnectButton from '@/components/ConnectButton';
 import ContractTimeTraveler from '@/components/ContractTimeTraveler';
 import EmergencyHaltButton from '@/components/EmergencyHaltButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import EventMonitor from '@/components/EventMonitor';
 import ForceSyncButton from '@/components/ForceSyncButton';
 import GasHeatmap from '@/components/GasHeatmap';
 import GlobalStateSearch from '@/components/GlobalStateSearch';
 import { AccessControl } from '@/components/Guard';
 import LanguageToggle from '@/components/LanguageToggle';
+import Leaderboard from '@/components/leaderboard';
 import NetworkStatus from '@/components/NetworkStatus';
 import PRFeed from '@/components/PRFeed';
 import PushNotificationToggle from '@/components/PushNotificationToggle';
@@ -21,7 +23,6 @@ import SecurityScannerResults from '@/components/security';
 import TaskCard from '@/components/TaskCard';
 import ThemeToggle from '@/components/ThemeToggle';
 import TransactionFeed from '@/components/TransactionFeed';
-import Leaderboard from '@/components/leaderboard';
 import { useRole } from '@/context/RoleContext';
 import { useWallet } from '@/context/WalletContext';
 import { AlertBanner } from '@/components/AlertBanner';
@@ -275,6 +276,13 @@ export default function Home(): ReactElement {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Event Monitor - Protocol-wide event timeline */}
+        <div className="mt-6">
+          <ErrorBoundary>
+            <EventMonitor />
+          </ErrorBoundary>
         </div>
 
         {/* Gas Usage Heatmap */}

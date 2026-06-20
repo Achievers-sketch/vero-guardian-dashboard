@@ -23,6 +23,7 @@ import {
 } from '@/lib/wallets';
 import { getReputation } from '@/lib/stellar-interact';
 import { useChainState } from '@/hooks/useChainState';
+import { useEvents } from '@/hooks/useEvents';
 
 const STORAGE_KEY = 'vero_wallet_publicKey';
 const PROVIDER_STORAGE_KEY = 'vero_wallet_provider';
@@ -71,6 +72,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const { syncVersion: accountSyncVersion } = useChainState({
     cacheKeys: publicKey ? [`account:${publicKey}`, `reputation:${publicKey}`] : ['wallet'],
   });
+  const { emit } = useEvents();
 
   // Detect installed wallet extensions once on the client.
   useEffect(() => {
@@ -253,6 +255,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         const provider = getWalletProvider(providerId);
         const nextPublicKey = await provider.connect();
         applyVerifiedPublicKey(nextPublicKey, providerId);
+        emit({ type: 'wallet_connected', actor: nextPublicKey, resource: 'wallet', resourceId: providerId });
       } catch (connectError) {
         const message = getErrorMessage(connectError, 'Failed to connect wallet');
         console.error('Wallet connection error:', connectError);
@@ -261,12 +264,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         setIsLoading(false);
       }
     },
-    [applyVerifiedPublicKey, clearWalletState]
+    [applyVerifiedPublicKey, clearWalletState, emit]
   );
 
   const disconnect = useCallback(() => {
+    if (publicKey) {
+      emit({ type: 'wallet_disconnected', actor: publicKey, resource: 'wallet', resourceId: activeProvider ?? undefined });
+    }
     clearWalletState();
-  }, [clearWalletState]);
+  }, [publicKey, activeProvider, clearWalletState, emit]);
 
   const value = useMemo<WalletContextType>(
     () => ({

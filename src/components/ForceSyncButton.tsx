@@ -4,11 +4,13 @@ import { useEffect, useRef, useState, type ReactElement } from 'react';
 import { RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useChainState } from '@/hooks/useChainState';
+import { useEvents } from '@/hooks/useEvents';
 
 const DASHBOARD_SYNC_KEYS = ['dashboard', 'prs', 'transactions'];
 
 export default function ForceSyncButton(): ReactElement {
   const { t } = useTranslation();
+  const { emit } = useEvents();
   const { forceSync, status, isSyncing } = useChainState({
     cacheKeys: DASHBOARD_SYNC_KEYS,
   });
@@ -28,6 +30,7 @@ export default function ForceSyncButton(): ReactElement {
     setIsPending(true);
     try {
       await forceSync();
+      emit({ type: 'force_sync', resource: 'chain_state', metadata: { status } });
     } finally {
       if (pendingResetRef.current !== null) {
         window.clearTimeout(pendingResetRef.current);

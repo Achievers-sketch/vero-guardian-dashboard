@@ -5,6 +5,7 @@ import { CheckCircle2, ExternalLink, Radio, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { getStellarExplorerTxUrl } from '@/lib/stellar-expert';
+import { useEvents } from '@/hooks/useEvents';
 import { appendAuditEvent, type AuditLogEventInput } from '@/utils/logger';
 import { useNetwork } from '@/context/NetworkContext';
 import { DEFAULT_HORIZON_URL } from '@/services/rpc';
@@ -124,6 +125,7 @@ export default function TransactionFeed({
 }: TransactionFeedProps = {}): ReactElement {
   const { t } = useTranslation();
   const { networkConfig } = useNetwork();
+  const { emit } = useEvents();
   const [transactions, setTransactions] = useState<FeedTransaction[]>([]);
   const [status, setStatus] = useState<FeedConnectionStatus>('connecting');
   const seenTransactionIds = useRef<Set<string>>(new Set());
@@ -148,6 +150,13 @@ export default function TransactionFeed({
         }
 
         seenTransactionIds.current.add(transaction.id);
+        emit({
+          type: 'transaction',
+          actor: transaction.sourceAccount,
+          resource: 'stellar.transaction',
+          resourceId: transaction.hash,
+          metadata: { ledger: transaction.ledger, operationCount: transaction.operationCount, successful: transaction.successful },
+        });
         void auditAppender({
           id: `stellar-tx-${transaction.id}`,
           timestamp: transaction.createdAt,
@@ -183,7 +192,7 @@ export default function TransactionFeed({
       active = false;
       unsubscribe();
     };
-  }, [auditAppender, subscriber, maxEntries]);
+  }, [auditAppender, subscriber, maxEntries, emit]);
 
   const statusStyle = STATUS_STYLES[status];
 
