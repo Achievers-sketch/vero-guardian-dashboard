@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactElement } from 'react';
+import { useMemo } from 'react';
 import type { TFunction } from 'i18next';
 import { Activity, ArrowRight, CheckCircle2, Code2, Shield, Trophy } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +23,8 @@ import TaskCard from '@/components/TaskCard';
 import ThemeToggle from '@/components/ThemeToggle';
 import TransactionFeed from '@/components/TransactionFeed';
 import Leaderboard from '@/components/leaderboard';
+import TransactionFeed from '@/components/TransactionFeed';
+import DashboardGrid from '@/components/dashboard/DashboardGrid';
 import { useRole } from '@/context/RoleContext';
 import { useWallet } from '@/context/WalletContext';
 import { AlertBanner } from '@/components/AlertBanner';
@@ -103,6 +106,109 @@ export default function Home(): ReactElement {
   const roleHelperText = getRoleHelperText(role, isConnected, isRoleLoading, t);
   const welcomeTitle = getWelcomeTitle(isConnected, isRoleLoading, roleLabel, t);
   const welcomeDescription = getWelcomeDescription(role, isRoleLoading, t);
+  const widgets = useMemo(() => {
+    const list = [
+      {
+        id: 'pr-feed',
+        title: t('app.prFeedTitle', { defaultValue: 'PR Validation Queue' }),
+        component: (
+          <ErrorBoundary>
+            <PRFeed />
+          </ErrorBoundary>
+        )
+      },
+      {
+        id: 'state-search',
+        title: t('app.stateSearchTitle', { defaultValue: 'Global State Search' }),
+        component: (
+          <ErrorBoundary>
+            <GlobalStateSearch />
+          </ErrorBoundary>
+        )
+      },
+      {
+        id: 'transaction-feed',
+        title: t('app.transactionFeedTitle', { defaultValue: 'Activity Monitor' }),
+        component: (
+          <ErrorBoundary>
+            <TransactionFeed />
+          </ErrorBoundary>
+        )
+      },
+      {
+        id: 'security-scanner',
+        title: t('app.securityScannerTitle', { defaultValue: 'Security Check' }),
+        component: (
+          <ErrorBoundary>
+            <SecurityScannerResults />
+          </ErrorBoundary>
+        )
+      },
+      {
+        id: 'leaderboard',
+        title: t('app.leaderboardTitle', { defaultValue: 'Guardian Leaderboard' }),
+        component: (
+          <ErrorBoundary>
+            <Leaderboard />
+          </ErrorBoundary>
+        )
+      },
+      {
+        id: 'quick-actions',
+        title: t('actions.heading', { defaultValue: 'Quick Actions' }),
+        component: (
+          <div className="h-full flex flex-col justify-between">
+            <div className="grid grid-cols-1 gap-3">
+              <button 
+                className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-label={t('actions.networkStatus')}
+              >
+                <span className="font-medium">{t('actions.networkStatus')}</span>
+                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+              </button>
+              <button 
+                className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-label={t('actions.stake')}
+              >
+                <span className="font-medium">{t('actions.stake')}</span>
+                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+              </button>
+              <button 
+                className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                aria-label={t('actions.rewards')}
+              >
+                <span className="font-medium">{t('actions.rewards')}</span>
+                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        )
+      },
+      {
+        id: 'gas-heatmap',
+        title: t('app.gasHeatmapTitle', { defaultValue: 'Gas Heatmap Analysis' }),
+        component: (
+          <ErrorBoundary>
+            <GasHeatmap />
+          </ErrorBoundary>
+        )
+      }
+    ];
+
+    if (role === 'admin') {
+      list.push({
+        id: 'task-card',
+        title: t('admin.management', { defaultValue: 'Admin Management' }),
+        component: (
+          <ErrorBoundary>
+            <TaskCard />
+          </ErrorBoundary>
+        )
+      });
+    }
+
+    return list;
+  }, [t, role]);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
