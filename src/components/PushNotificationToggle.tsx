@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Bell, BellOff, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getPushSubscription, savePushSubscription } from '@/services/push';
 
 const PUSH_SUBSCRIPTION_KEY = 'vero_push_subscription';
 
@@ -57,7 +58,7 @@ export default function PushNotificationToggle() {
       scope: '/',
     });
 
-    return await registration.ready;
+    return registration;
   }, []);
 
   const subscribeToPush = useCallback(async () => {
@@ -86,7 +87,7 @@ export default function PushNotificationToggle() {
     const pushManager = registration.pushManager as PushManager;
     const existingSubscription = await pushManager.getSubscription();
     if (existingSubscription) {
-      await savePushSubscription(existingSubscription);
+      await savePushSubscription(existingSubscription.toJSON() as any);
       setIsSubscribed(true);
       return;
     }
@@ -107,14 +108,14 @@ export default function PushNotificationToggle() {
       applicationServerKey: applicationServerKeyBuffer,
     });
 
-    await savePushSubscription(subscription);
+    await savePushSubscription(subscription.toJSON() as any);
 
     const response = await fetch('/api/push', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ subscription }),
+      body: JSON.stringify({ subscription: subscription.toJSON() }),
     });
 
     if (!response.ok) {
@@ -152,12 +153,15 @@ export default function PushNotificationToggle() {
         const swSubscription = await registration.pushManager.getSubscription();
         setIsSubscribed(Boolean(swSubscription));
         if (swSubscription) {
-          await savePushSubscription(swSubscription);
+          await savePushSubscription(swSubscription.toJSON() as any);
         }
       }
     };
 
-  }, [registerServiceWorker]);
+    checkSubscription().catch(() => {
+      setError(t('pushNotification.initError'));
+    });
+  }, [registerServiceWorker, t]);
 
   if (!isSupported) {
     return null;
