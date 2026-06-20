@@ -5,8 +5,6 @@ import { useRole } from '@/context/RoleContext';
 import { useToast } from '@/components/Toast';
 import { appendAuditEvent } from '@/utils/logger';
 
-const mockForceSync = jest.fn();
-
 jest.mock('@/services/contractClient', () => ({
   castVote: jest.fn(),
 }));
@@ -17,11 +15,25 @@ jest.mock('@/components/Toast');
 jest.mock('@/utils/logger', () => ({
   appendAuditEvent: jest.fn(() => Promise.resolve()),
 }));
+jest.mock('@/context/NetworkContext', () => ({
+  useNetwork: jest.fn(() => ({
+    networkConfig: {
+      horizonUrl: 'https://horizon-testnet.stellar.org',
+      networkPassphrase: 'Test SDF Network ; September 2015',
+      sorobanRpcUrl: 'https://soroban-testnet.stellar.org',
+    },
+  })),
+}));
+jest.mock('@/hooks/useChainState', () => ({
+  useChainState: jest.fn(() => ({ forceSync: jest.fn() })),
+}));
+jest.mock('@/lib/stellar-expert', () => ({
+  getStellarExplorerTxUrl: (hash: string) => `https://stellar.expert/explorer/testnet/tx/${hash}`,
+}));
 
 const mockCastVote = castVote as jest.MockedFunction<typeof castVote>;
 const mockUseRole = useRole as jest.MockedFunction<typeof useRole>;
 const mockUseToast = useToast as jest.MockedFunction<typeof useToast>;
-const mockAppendAuditEvent = appendAuditEvent as jest.MockedFunction<typeof appendAuditEvent>;
 const mockShowToast = jest.fn();
 const mockRefreshRole = jest.fn();
 
@@ -50,28 +62,26 @@ beforeEach(() => {
   mockUseToast.mockReturnValue({ showToast: mockShowToast });
   mockRole();
   mockCastVote.mockResolvedValue('deafhash');
-  mockForceSync.mockResolvedValue(undefined);
 });
 
 afterEach(() => jest.clearAllMocks());
 
 describe('VoteButton', () => {
   it('lets a connected authorized role cast a vote', async () => {
-    mockRole({
-      role: 'admin',
-      isAdmin: true,
-      isGuardian: false,
-      canManageTasks: true,
-    });
-
+    mockRole({ role: 'admin', isAdmin: true, isGuardian: false, canManageTasks: true });
     const button = renderVoteButton();
 
     expect(button).toBeEnabled();
     fireEvent.click(button);
 
-    await waitFor(() => expect(mockCastVote).toHaveBeenCalledWith(42, 'GPUBKEY'));
+    await waitFor(() => expect(mockCastVote).toHaveBeenCalledWith(
+      42,
+      'GPUBKEY',
+      expect.any(String),
+      expect.any(String),
+    ));
     await waitFor(() =>
-      expect(mockAppendAuditEvent).toHaveBeenCalledWith(
+      expect(appendAuditEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'vote-42-deafhash',
           type: 'guardian.vote',
@@ -91,12 +101,7 @@ describe('VoteButton', () => {
   });
 
   it('is disabled for an unauthorized role and does not vote', () => {
-    mockRole({
-      role: 'unauthorized',
-      isGuardian: false,
-      canVote: false,
-    });
-
+    mockRole({ role: 'unauthorized', isGuardian: false, canVote: false });
     const button = renderVoteButton();
 
     expect(button).toBeDisabled();
@@ -106,32 +111,86 @@ describe('VoteButton', () => {
 
   it('is disabled while role data is loading', () => {
     mockRole({ isLoading: true, canVote: true });
-
     expect(renderVoteButton()).toBeDisabled();
   });
 
-  it('shows success toast and disables after a successful vote', async () => {
+  it('shows Loader2 spinner and "Signing…" label in PENDING state', async () => {
+    // Keep castVote pending so we can inspect the mid-flight UI.
+    let resolve!: (hash: string) => void;
+    mockCastVote.mockReturnValue(new Promise<string>((res) => { resolve = res; }));
+
     const button = renderVoteButton();
     fireEvent.click(button);
 
+    await waitFor(() => expect(button).toBeDisabled());
+    // The button should contain the spinning loader during signing.
+    expect(button.querySelector('svg')).toBeInTheDocument();
+    // Aria label updates to "signing" state.
+    expect(button).toHaveAttribute('aria-label', expect.stringContaining('PR #42'));
+
+    // Also expect the inline pending notification to appear.
     await waitFor(() =>
-      expect(mockShowToast).toHaveBeenCalledWith(expect.stringContaining('Vote recorded'), 'success')
+      expect(screen.getByRole('status')).toBeInTheDocument(),
     );
-    expect(button).toBeDisabled();
+
+    resolve('finalhash');
   });
 
-  it('shows generic error toast for vote failures', async () => {
+  it('shows success notification with explorer link after a successful vote', async () => {
+    const button = renderVoteButton();
+    fireEvent.click(button);
+
+    await waitFor(() => expect(button).toBeDisabled());
+    // Button text changes to "✓ Voted"
+    await waitFor(() => expect(button).toHaveTextContent(/voted/i));
+    // Inline success notification with a link.
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: /view transaction/i })).toBeInTheDocument(),
+    );
+  });
+
+  it('shows a network error notification when the vote fails with a contract error', async () => {
     mockCastVote.mockRejectedValue(new Error('Horizon error'));
     const button = renderVoteButton();
     fireEvent.click(button);
 
-    await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith('Horizon error', 'error'));
-    expect(mockAppendAuditEvent).toHaveBeenCalledWith(
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/network or contract error/i),
+    );
+    expect(appendAuditEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'guardian.vote',
         action: 'vote_failed',
         status: 'failure',
+        metadata: expect.objectContaining({ errorKind: 'network_error' }),
       }),
     );
+  });
+
+  it('shows a user rejection notification when Freighter is declined', async () => {
+    mockCastVote.mockRejectedValue(new Error('User declined access'));
+    const button = renderVoteButton();
+    fireEvent.click(button);
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert')).toHaveTextContent(/rejected/i),
+    );
+    expect(appendAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ errorKind: 'user_rejected' }),
+      }),
+    );
+  });
+
+  it('clears the error notification when the dismiss button is clicked', async () => {
+    mockCastVote.mockRejectedValue(new Error('Horizon error'));
+    renderVoteButton();
+    fireEvent.click(screen.getByRole('button', { name: /vote for pr/i }));
+
+    await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('button', { name: /close notification/i }));
+
+    await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
   });
 });
