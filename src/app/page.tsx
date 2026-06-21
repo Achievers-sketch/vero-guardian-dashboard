@@ -11,6 +11,7 @@ import ContractTimeTraveler from '@/components/ContractTimeTraveler';
 import EmergencyHaltButton from '@/components/EmergencyHaltButton';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import EventMonitor from '@/components/EventMonitor';
+import FeedbackModal from '@/components/FeedbackModal';
 import ForceSyncButton from '@/components/ForceSyncButton';
 import GasHeatmap from '@/components/GasHeatmap';
 import GlobalStateSearch from '@/components/GlobalStateSearch';
@@ -25,9 +26,8 @@ import ContractCallGraph from '@/components/ContractCallGraph';
 import TaskCard from '@/components/TaskCard';
 import ThemeToggle from '@/components/ThemeToggle';
 import TransactionFeed from '@/components/TransactionFeed';
-import Leaderboard from '@/components/leaderboard';
-import TransactionFeed from '@/components/TransactionFeed';
 import DashboardGrid from '@/components/dashboard/DashboardGrid';
+import SessionTimer from '@/components/timer';
 import { useRole } from '@/context/RoleContext';
 import { useWallet } from '@/context/WalletContext';
 import { AlertBanner } from '@/components/AlertBanner';
@@ -230,6 +230,7 @@ export default function Home(): ReactElement {
             </div>
             <div className="flex items-center gap-3">
               <PushNotificationToggle />
+              <FeedbackModal />
               <LanguageToggle />
               <ThemeToggle />
               <ForceSyncButton />
