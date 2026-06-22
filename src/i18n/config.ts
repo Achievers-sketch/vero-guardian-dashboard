@@ -341,6 +341,8 @@ export const resources = {
         typeTransaction: 'Tx',
         typeEmergencyHalt: 'Halt',
         typeForceSync: 'Sync',
+        typeTaskVerified: 'Verified',
+        typeTaskCompleted: 'Completed',
         typeUnknown: 'Event',
       },
       reputation: {
@@ -797,6 +799,8 @@ export const resources = {
         typeTransaction: 'Tx',
         typeEmergencyHalt: 'Parada',
         typeForceSync: 'Sync',
+        typeTaskVerified: 'Verificado',
+        typeTaskCompleted: 'Completado',
         typeUnknown: 'Evento',
       },
       reputation: {
@@ -1253,6 +1257,8 @@ export const resources = {
         typeTransaction: 'Tx',
         typeEmergencyHalt: 'Arret',
         typeForceSync: 'Sync',
+        typeTaskVerified: 'Verifie',
+        typeTaskCompleted: 'Termine',
         typeUnknown: 'Evenement',
       },
       reputation: {
