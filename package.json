@@ -34,6 +34,7 @@
     "react-i18next": "^15.5.3",
     "recharts": "2.12.7",
     "shepherd.js": "13.0.3",
+    "socket.io-client": "^4.8.3",
     "tailwind-merge": "^2.3.0",
     "zod": "^4.4.3"
   },
