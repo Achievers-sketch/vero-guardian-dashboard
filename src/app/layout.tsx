@@ -10,6 +10,7 @@ import { ErrorProvider } from '@/components/ErrorModal';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { I18nProvider } from '@/i18n';
 import { NetworkProvider } from '@/context/NetworkContext';
+import { SocketIOProvider } from '@/context/SocketIOContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -30,15 +31,17 @@ export default function RootLayout({ children }: RootLayoutProps): ReactElement 
           <AlertProvider>
             <ThemeProvider>
               <NetworkProvider>
-                <WalletProvider>
-                  <RoleProvider>
-                    <ErrorProvider>
-                      <ToastProvider>
-                        {children}
-                      </ToastProvider>
-                    </ErrorProvider>
-                  </RoleProvider>
-                </WalletProvider>
+                  <WalletProvider>
+                    <RoleProvider>
+                      <SocketIOProvider>
+                        <ErrorProvider>
+                          <ToastProvider>
+                            {children}
+                          </ToastProvider>
+                        </ErrorProvider>
+                      </SocketIOProvider>
+                    </RoleProvider>
+                  </WalletProvider>
               </NetworkProvider>
             </ThemeProvider>
           </AlertProvider>
