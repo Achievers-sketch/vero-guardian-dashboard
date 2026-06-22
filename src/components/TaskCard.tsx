@@ -1,7 +1,9 @@
 'use client';
 
-import { CheckCircle2, Clock, AlertCircle, ShieldCheck } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { CheckCircle2, Clock, AlertCircle, ShieldCheck, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useToast } from '@/components/Toast';
 
 export interface TaskCardTask {
   id: string;
@@ -11,10 +13,13 @@ export interface TaskCardTask {
   is_done?: boolean;
   reward: string;
   priority: 'high' | 'medium' | 'low';
+  votes?: number;
 }
 
 interface TaskCardProps {
   tasks?: TaskCardTask[];
+  /** Override the simulated Soroban submit for testing. */
+  submitVote?: (taskId: string) => Promise<{ status: string; txHash?: string }>;
 }
 
 const mockTasks: TaskCardTask[] = [
@@ -24,6 +29,7 @@ const mockTasks: TaskCardTask[] = [
     status: 'in-progress',
     reward: '50 VERO',
     priority: 'high',
+    votes: 3,
   },
   {
     id: '2',
@@ -31,6 +37,7 @@ const mockTasks: TaskCardTask[] = [
     status: 'pending',
     reward: '35 VERO',
     priority: 'medium',
+    votes: 0,
   },
   {
     id: '3',
@@ -39,11 +46,69 @@ const mockTasks: TaskCardTask[] = [
     is_done: true,
     reward: '40 VERO',
     priority: 'high',
+    votes: 5,
   },
 ];
 
-export default function TaskCard({ tasks = mockTasks }: TaskCardProps) {
+function delay(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+async function defaultSubmitVote(_taskId: string): Promise<{ status: string; txHash?: string }> {
+  await delay(1500);
+  if (Math.random() < 0.15) {
+    throw new Error('Soroban transaction failed: consensus timeout');
+  }
+  return { status: 'success', txHash: `0x${Math.random().toString(16).slice(2, 10)}` };
+}
+
+export default function TaskCard({ tasks = mockTasks, submitVote = defaultSubmitVote }: TaskCardProps) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
+
+  const [pendingVotes, setPendingVotes] = useState<Record<string, boolean>>({});
+  const [optimisticVotes, setOptimisticVotes] = useState<Record<string, number>>({});
+  const [optimisticStatus, setOptimisticStatus] = useState<Record<string, TaskCardTask['status']>>({});
+
+  const handleVerify = useCallback(
+    async (task: TaskCardTask) => {
+      const taskId = task.id;
+      if (pendingVotes[taskId]) return;
+
+      const prevStatus = optimisticStatus[taskId] ?? task.status;
+      const prevVotes = task.votes ?? 0;
+      const optimisticDelta = optimisticVotes[taskId] ?? 0;
+
+      setPendingVotes((p) => ({ ...p, [taskId]: true }));
+      setOptimisticVotes((v) => ({ ...v, [taskId]: optimisticDelta + 1 }));
+      if (prevStatus === 'pending') {
+        setOptimisticStatus((s) => ({ ...s, [taskId]: 'in-progress' }));
+      }
+
+      try {
+        const result = await submitVote(taskId);
+        if (result.status === 'success') {
+          showToast(
+            t('tasks.verify.toast.success', { txHash: result.txHash?.slice(0, 8) ?? '…' }),
+            'success',
+          );
+        }
+      } catch {
+        setOptimisticVotes((v) => ({ ...v, [taskId]: optimisticDelta }));
+        if (prevStatus === 'pending') {
+          setOptimisticStatus((s) => ({ ...s, [taskId]: 'pending' }));
+        }
+        showToast(t('tasks.verify.toast.error'), 'error');
+      } finally {
+        setPendingVotes((p) => {
+          const next = { ...p };
+          delete next[taskId];
+          return next;
+        });
+      }
+    },
+    [pendingVotes, optimisticVotes, optimisticStatus, submitVote, showToast, t],
+  );
 
   const getStatusIcon = (status: TaskCardTask['status']) => {
     switch (status) {
@@ -73,7 +138,6 @@ export default function TaskCard({ tasks = mockTasks }: TaskCardProps) {
     if (status === 'in-progress') {
       return t('tasks.status.inProgress');
     }
-
     return t(`tasks.status.${status}`);
   };
 
@@ -86,9 +150,12 @@ export default function TaskCard({ tasks = mockTasks }: TaskCardProps) {
 
       <div className="space-y-3">
         {tasks.map((task) => {
-          const status = task.is_done ? 'completed' : task.status;
+          const baseStatus = task.is_done ? 'completed' : task.status;
+          const status = optimisticStatus[task.id] ?? baseStatus;
           const title = task.title ?? t(task.titleKey ?? '');
-          const canVote = !task.is_done && status !== 'completed';
+          const isPending = pendingVotes[task.id] ?? false;
+          const canVote = !task.is_done && status !== 'completed' && !isPending;
+          const voteCount = (task.votes ?? 0) + (optimisticVotes[task.id] ?? 0);
 
           return (
             <div
@@ -117,19 +184,32 @@ export default function TaskCard({ tasks = mockTasks }: TaskCardProps) {
                         {getStatusLabel(status)}
                       </span>
                     </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                      {t('tasks.votes', { count: voteCount })}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right space-y-2">
                   <span className="block text-lg font-semibold text-indigo-600 dark:text-indigo-400">{task.reward}</span>
-                  {canVote && (
+                  {isPending ? (
                     <button
                       type="button"
-                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
-                      aria-label={`Vote for ${title}`}
+                      disabled
+                      className="rounded-lg bg-slate-100 dark:bg-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 cursor-wait transition-colors flex items-center gap-2"
                     >
-                      Vote
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                      {t('tasks.verify.pending')}
                     </button>
-                  )}
+                  ) : canVote ? (
+                    <button
+                      type="button"
+                      onClick={() => handleVerify(task)}
+                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                      aria-label={`Verify quality for ${title}`}
+                    >
+                      {t('tasks.verify.action')}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             </div>

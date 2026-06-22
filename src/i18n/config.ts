@@ -137,6 +137,15 @@ export const resources = {
           pending: 'pending',
           inProgress: 'in progress',
         },
+        verify: {
+          action: 'Verify Quality',
+          pending: 'Verifying…',
+          toast: {
+            success: 'Verified! Tx {{txHash}}…',
+            error: 'Verification failed. Changes reverted.',
+          },
+        },
+        votes: '{{count}} votes',
       },
       vote: {
         voted: 'Voted',
@@ -593,6 +602,15 @@ export const resources = {
           pending: 'pendiente',
           inProgress: 'en progreso',
         },
+        verify: {
+          action: 'Verificar calidad',
+          pending: 'Verificando…',
+          toast: {
+            success: 'Verificado! Tx {{txHash}}…',
+            error: 'Verificacion fallida. Cambios revertidos.',
+          },
+        },
+        votes: '{{count}} votos',
       },
       vote: {
         voted: 'Votado',
@@ -1049,6 +1067,15 @@ export const resources = {
           pending: 'en attente',
           inProgress: 'en cours',
         },
+        verify: {
+          action: 'Verifier la qualite',
+          pending: 'Verification…',
+          toast: {
+            success: 'Verifie! Tx {{txHash}}…',
+            error: 'Echec de la verification. Modifications annulees.',
+          },
+        },
+        votes: '{{count}} votes',
       },
       vote: {
         voted: 'Vote',
