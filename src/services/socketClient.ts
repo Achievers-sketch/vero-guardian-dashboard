@@ -113,10 +113,10 @@ export function onSocketError(listener: ErrorListener): () => void {
 }
 
 export function resetSocketClientForTests(): void {
-  disconnectSocket();
   statusListeners.clear();
   eventListeners.clear();
   errorListeners.clear();
+  disconnectSocket();
   status = 'disconnected';
   connectionUrl = undefined;
   authToken = undefined;
