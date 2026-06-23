@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { WalletProvider, useWallet } from '@/context/WalletContext';
+import { getSessionItem } from '@/auth/session';
 
 jest.mock('@stellar/freighter-api', () => ({
   isConnected: jest.fn().mockResolvedValue({ isConnected: false }),
@@ -81,8 +82,8 @@ describe('WalletContext multi-provider support', () => {
 
     await waitFor(() => expect(screen.getByTestId('pk')).toHaveTextContent(RABET_KEY));
     expect(screen.getByTestId('provider')).toHaveTextContent('rabet');
-    expect(localStorage.getItem(STORAGE_KEY)).toBe(RABET_KEY);
-    expect(localStorage.getItem(PROVIDER_STORAGE_KEY)).toBe('rabet');
+    expect(await getSessionItem(STORAGE_KEY)).toBe(RABET_KEY);
+    expect(await getSessionItem(PROVIDER_STORAGE_KEY)).toBe('rabet');
   });
 
   it('surfaces an error when the selected wallet is not installed', async () => {

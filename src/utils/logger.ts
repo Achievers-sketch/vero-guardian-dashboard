@@ -396,12 +396,6 @@ function base64ToBytes(value: string): Uint8Array {
   return Uint8Array.from(binary, (character) => character.charCodeAt(0));
 }
 
-function bytesToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  const copy = new Uint8Array(bytes.byteLength);
-  copy.set(bytes);
-  return copy.buffer;
-}
-
 function bufferToHex(buffer: ArrayBuffer): string {
   return Array.from(new Uint8Array(buffer))
     .map((byte) => byte.toString(16).padStart(2, '0'))
@@ -456,8 +450,8 @@ async function decryptRecord(
   key: CryptoKey,
   record: EncryptedAuditLogRecord,
 ): Promise<AuditLogEvent> {
-  const iv = bytesToArrayBuffer(base64ToBytes(record.iv));
-  const ciphertext = bytesToArrayBuffer(base64ToBytes(record.ciphertext));
+  const iv = new Uint8Array(base64ToBytes(record.iv));
+  const ciphertext = new Uint8Array(base64ToBytes(record.ciphertext));
   const decrypted = await cryptoProvider.subtle.decrypt(
     { name: 'AES-GCM', iv },
     key,
