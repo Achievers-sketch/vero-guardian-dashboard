@@ -263,10 +263,19 @@ export function logGasEstimate(estimate: GasEstimate, logger: GasLogger = consol
   return record;
 }
 
+/** Default cap on retained log records, bounding memory in long-running processes. */
+export const DEFAULT_MAX_HISTORY = 1000;
+
 export interface GasUsageMonitorOptions {
   limits?: GasLimits;
   warnThreshold?: number;
   logger?: GasLogger;
+  /**
+   * Maximum number of log records to retain; once exceeded the oldest records
+   * are dropped. A value `<= 0` keeps history unbounded. Defaults to
+   * `DEFAULT_MAX_HISTORY`.
+   */
+  maxHistory?: number;
 }
 
 /**
@@ -278,12 +287,22 @@ export class GasUsageMonitor {
   private readonly limits: GasLimits;
   private readonly warnThreshold: number;
   private readonly logger: GasLogger;
+  private readonly maxHistory: number;
   private readonly records: GasLogRecord[] = [];
 
   constructor(options: GasUsageMonitorOptions = {}) {
     this.limits = options.limits ?? DEFAULT_GAS_LIMITS;
     this.warnThreshold = clampFraction(options.warnThreshold ?? DEFAULT_WARN_THRESHOLD);
     this.logger = options.logger ?? consoleGasLogger;
+    this.maxHistory = options.maxHistory ?? DEFAULT_MAX_HISTORY;
+  }
+
+  /** Append a record, dropping the oldest entries once `maxHistory` is exceeded. */
+  private retain(record: GasLogRecord): void {
+    this.records.push(record);
+    if (this.maxHistory > 0 && this.records.length > this.maxHistory) {
+      this.records.splice(0, this.records.length - this.maxHistory);
+    }
   }
 
   private get options(): EstimateGasOptions {
@@ -304,7 +323,7 @@ export class GasUsageMonitor {
     simulation: StellarSdk.SorobanRpc.Api.SimulateTransactionResponse,
   ): GasEstimate {
     const estimate = this.estimate(functionName, simulation);
-    this.records.push(logGasEstimate(estimate, this.logger));
+    this.retain(logGasEstimate(estimate, this.logger));
     return estimate;
   }
 
@@ -315,7 +334,7 @@ export class GasUsageMonitor {
     transaction: StellarSdk.Transaction | StellarSdk.FeeBumpTransaction,
   ): Promise<GasEstimate> {
     const estimate = await simulateGas(simulator, functionName, transaction, this.options);
-    this.records.push(logGasEstimate(estimate, this.logger));
+    this.retain(logGasEstimate(estimate, this.logger));
     return estimate;
   }
 
