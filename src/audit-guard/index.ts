@@ -2,6 +2,7 @@ export {
   GAS_RESOURCES,
   DEFAULT_GAS_LIMITS,
   DEFAULT_WARN_THRESHOLD,
+  DEFAULT_MAX_HISTORY,
   GasMonitorError,
   consoleGasLogger,
   GasUsageMonitor,

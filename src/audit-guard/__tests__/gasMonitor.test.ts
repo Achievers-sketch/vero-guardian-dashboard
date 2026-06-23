@@ -307,6 +307,29 @@ describe('GasUsageMonitor', () => {
     monitor.clear();
     expect(monitor.history()).toHaveLength(0);
   });
+
+  it('caps retained history at maxHistory, dropping the oldest records', () => {
+    const monitor = new GasUsageMonitor({ logger: makeSpyLogger().logger, maxHistory: 2 });
+    const sim = makeSimulation({ cpuInsns: 1, memBytes: 1, readBytes: 1, writeBytes: 1, minResourceFee: 1 });
+
+    monitor.record('first', sim);
+    monitor.record('second', sim);
+    monitor.record('third', sim);
+
+    expect(monitor.history()).toHaveLength(2);
+    expect(monitor.history().map((record) => record.functionName)).toEqual(['second', 'third']);
+  });
+
+  it('keeps history unbounded when maxHistory is non-positive', () => {
+    const monitor = new GasUsageMonitor({ logger: makeSpyLogger().logger, maxHistory: 0 });
+    const sim = makeSimulation({ cpuInsns: 1, memBytes: 1, readBytes: 1, writeBytes: 1, minResourceFee: 1 });
+
+    for (let i = 0; i < 5; i += 1) {
+      monitor.record(`call_${i}`, sim);
+    }
+
+    expect(monitor.history()).toHaveLength(5);
+  });
 });
 
 describe('GAS_RESOURCES coverage', () => {
