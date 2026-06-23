@@ -456,8 +456,8 @@ async function decryptRecord(
   key: CryptoKey,
   record: EncryptedAuditLogRecord,
 ): Promise<AuditLogEvent> {
-  const iv = bytesToArrayBuffer(base64ToBytes(record.iv));
-  const ciphertext = bytesToArrayBuffer(base64ToBytes(record.ciphertext));
+  const iv = base64ToBytes(record.iv);
+  const ciphertext = base64ToBytes(record.ciphertext);
   const decrypted = await cryptoProvider.subtle.decrypt(
     { name: 'AES-GCM', iv },
     key,

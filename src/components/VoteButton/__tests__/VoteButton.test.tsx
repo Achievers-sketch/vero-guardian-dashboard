@@ -11,9 +11,6 @@ jest.mock('@/services/contractClient', () => ({
 jest.mock('@/context/RoleContext', () => ({
   useRole: jest.fn(),
 }));
-jest.mock('@/context/NetworkContext', () => ({
-  useNetwork: jest.fn(),
-}));
 jest.mock('@/components/Toast');
 jest.mock('@/utils/logger', () => ({
   appendAuditEvent: jest.fn(() => Promise.resolve()),
@@ -39,6 +36,7 @@ import { useNetwork } from '@/context/NetworkContext';
 const mockCastVote = castVote as jest.MockedFunction<typeof castVote>;
 const mockUseRole = useRole as jest.MockedFunction<typeof useRole>;
 const mockUseToast = useToast as jest.MockedFunction<typeof useToast>;
+const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
 const mockShowToast = jest.fn();
 const mockRefreshRole = jest.fn();
 
