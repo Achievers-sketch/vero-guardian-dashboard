@@ -275,9 +275,12 @@ describe('BatchTransactionBuilder (Soroban)', () => {
         async (_tx: StellarSdk.Transaction | StellarSdk.FeeBumpTransaction) => ({
           id: '1',
           latestLedger: 100,
+          _parsed: true,
+          events: [],
           transactionData: new StellarSdk.SorobanDataBuilder(),
           minResourceFee: '100',
           cost: { cpuInsns: '0', memBytes: '0' },
+          result: { auth: [], retval: StellarSdk.xdr.ScVal.scvVoid() },
         } as unknown as StellarSdk.SorobanRpc.Api.SimulateTransactionResponse),
       ),
       sendTransaction: jest.fn(

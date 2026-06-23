@@ -1,6 +1,28 @@
+import { webcrypto } from 'crypto';
+import { TextDecoder, TextEncoder } from 'util';
 import '@testing-library/jest-dom';
 import './src/i18n/config';
 import { installIndexedDBMock } from './test-utils/indexeddb-mock';
+
+// jsdom does not provide TextEncoder/TextDecoder globally; back them with Node's.
+if (typeof globalThis.TextEncoder === 'undefined') {
+        globalThis.TextEncoder = TextEncoder;
+}
+if (typeof globalThis.TextDecoder === 'undefined') {
+        globalThis.TextDecoder = TextDecoder;
+}
+
+// jsdom does not implement the Web Crypto SubtleCrypto API; back it with Node's
+// webcrypto so code paths that encrypt/decrypt (e.g. session storage) work.
+if (typeof globalThis.crypto === 'undefined') {
+        Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true });
+} else if (!globalThis.crypto.subtle) {
+        try {
+                Object.defineProperty(globalThis.crypto, 'subtle', { value: webcrypto.subtle, configurable: true });
+        } catch {
+                Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true });
+        }
+}
 
 // Mock File System Access API (showSaveFilePicker)
 if (typeof globalThis.window === 'undefined') {
