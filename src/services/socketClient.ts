@@ -13,8 +13,6 @@ type StatusListener = (status: SocketConnectionStatus) => void;
 type EventListener = (event: SocketStateEvent) => void;
 type ErrorListener = (error: string) => void;
 
-const DEFAULT_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL?.trim() ?? '';
-
 const listeners = new Set<EventListener>();
 const statusListeners = new Set<StatusListener>();
 const errorListeners = new Set<ErrorListener>();
@@ -58,7 +56,7 @@ export function connectSocket(
   url?: string,
   authToken?: string,
 ): Socket {
-  const targetUrl = url?.trim() || DEFAULT_URL;
+  const targetUrl = url?.trim() || process.env.NEXT_PUBLIC_SOCKET_IO_URL?.trim() || '';
   if (!targetUrl) {
     notifyError('SOCKET_IO_URL not configured');
     notifyStatus('error');
@@ -177,10 +175,10 @@ export function emitSocketEvent(event: string, ...args: unknown[]): void {
 }
 
 export function resetSocketClientForTests(): void {
-  disconnectSocket();
   listeners.clear();
   statusListeners.clear();
   errorListeners.clear();
+  disconnectSocket();
   connectionStatus = 'disconnected';
   activeUrl = '';
 }

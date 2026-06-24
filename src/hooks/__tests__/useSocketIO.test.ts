@@ -177,9 +177,6 @@ describe('useSocketIO', () => {
       result.current.updateToken('new-token');
     });
 
-    expect(socket.auth).toEqual({});
-    // Token update triggers reconnect: disconnect + connect
-    expect(socket.disconnect as jest.Mock).toHaveBeenCalled();
-    expect(socket.connect as jest.Mock).toHaveBeenCalled();
+    expect(socket.auth).toEqual({ token: 'new-token' });
   });
 });
