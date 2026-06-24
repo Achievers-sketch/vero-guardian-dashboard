@@ -146,6 +146,15 @@ export const resources = {
           clear: 'Clear filters',
           noResults: 'No tasks match the selected filters.',
         },
+        verify: {
+          action: 'Verify Quality',
+          pending: 'Verifying…',
+          toast: {
+            success: 'Verified! Tx {{txHash}}…',
+            error: 'Verification failed. Changes reverted.',
+          },
+        },
+        votes: '{{count}} votes',
       },
       vote: {
         voted: 'Voted',
@@ -632,6 +641,15 @@ export const resources = {
           clear: 'Limpiar filtros',
           noResults: 'Ninguna tarea coincide con los filtros seleccionados.',
         },
+        verify: {
+          action: 'Verificar calidad',
+          pending: 'Verificando…',
+          toast: {
+            success: 'Verificado! Tx {{txHash}}…',
+            error: 'Verificacion fallida. Cambios revertidos.',
+          },
+        },
+        votes: '{{count}} votos',
       },
       vote: {
         voted: 'Votado',
@@ -1118,6 +1136,15 @@ export const resources = {
           clear: 'Effacer les filtres',
           noResults: 'Aucune tache ne correspond aux filtres selectionnes.',
         },
+        verify: {
+          action: 'Verifier la qualite',
+          pending: 'Verification…',
+          toast: {
+            success: 'Verifie! Tx {{txHash}}…',
+            error: 'Echec de la verification. Modifications annulees.',
+          },
+        },
+        votes: '{{count}} votes',
       },
       vote: {
         voted: 'Vote',
