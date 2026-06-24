@@ -1,6 +1,7 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 
 import TaskCard, { matchesFilter, type TaskCardTask } from '@/components/TaskCard';
+import { ToastProvider } from '@/components/Toast';
 
 let _searchParams = new URLSearchParams();
 
@@ -14,10 +15,6 @@ jest.mock('next/navigation', () => ({
   }),
   usePathname: () => '/',
 }));
-import { render, screen, fireEvent, act } from '@testing-library/react';
-
-import TaskCard, { type TaskCardTask } from '@/components/TaskCard';
-import { ToastProvider } from '@/components/Toast';
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return <ToastProvider>{children}</ToastProvider>;
@@ -173,7 +170,7 @@ describe('TaskCard', () => {
   });
 
   it('renders filter controls', () => {
-    render(<TaskCard tasks={[]} />);
+    render(<TaskCard tasks={[]} />, { wrapper: Wrapper });
 
     expect(screen.getByRole('group', { name: /filter tasks by status/i })).toBeInTheDocument();
     expect(screen.getByRole('group', { name: /filter tasks by priority/i })).toBeInTheDocument();
@@ -186,13 +183,13 @@ describe('TaskCard', () => {
       createTask({ id: '1', title: 'Pending task', status: 'pending', is_done: false }),
       createTask({ id: '2', title: 'Completed task', status: 'completed', is_done: true }),
     ];
-    const { rerender } = render(<TaskCard tasks={tasks} />);
+    const { rerender } = render(<TaskCard tasks={tasks} />, { wrapper: Wrapper });
 
     expect(screen.queryByText('Pending task')).not.toBeInTheDocument();
     expect(screen.getByText('Completed task')).toBeInTheDocument();
 
     _searchParams = new URLSearchParams();
-    rerender(<TaskCard tasks={tasks} />);
+    rerender(<TaskCard tasks={tasks} />, { wrapper: Wrapper });
     expect(screen.getByText('Pending task')).toBeInTheDocument();
   });
 
@@ -202,7 +199,8 @@ describe('TaskCard', () => {
     render(
       <TaskCard
         tasks={[createTask({ id: '1', title: 'Only pending task', status: 'pending', is_done: false })]}
-      />
+      />,
+      { wrapper: Wrapper },
     );
 
     expect(screen.getByText(/no tasks match/i)).toBeInTheDocument();
@@ -211,7 +209,7 @@ describe('TaskCard', () => {
   it('shows clear filters link when filter is active', () => {
     _searchParams = new URLSearchParams('status=completed');
 
-    render(<TaskCard tasks={[createTask()]} />);
+    render(<TaskCard tasks={[createTask()]} />, { wrapper: Wrapper });
 
     expect(screen.getByText(/clear filters/i)).toBeInTheDocument();
   });
@@ -219,7 +217,7 @@ describe('TaskCard', () => {
   it('clears filters via router replace when clear is clicked', () => {
     _searchParams = new URLSearchParams('status=completed');
 
-    render(<TaskCard tasks={[createTask({ id: '1', title: 'A task' })]} />);
+    render(<TaskCard tasks={[createTask({ id: '1', title: 'A task' })]} />, { wrapper: Wrapper });
 
     fireEvent.click(screen.getByText(/clear filters/i));
     expect(_searchParams.toString()).toBe('');
