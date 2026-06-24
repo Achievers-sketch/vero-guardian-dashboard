@@ -1,51 +1,62 @@
-'use client';
+"use client";
 
-import type { ReactElement } from 'react';
-import { useMemo } from 'react';
-import type { TFunction } from 'i18next';
-import { Activity, ArrowRight, CheckCircle2, Code2, Shield, Trophy } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import AuditSessionTimer from '@/components/AuditSessionTimer';
-import ConnectButton from '@/components/ConnectButton';
-import ContractTimeTraveler from '@/components/ContractTimeTraveler';
-import EmergencyHaltButton from '@/components/EmergencyHaltButton';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import EventMonitor from '@/components/EventMonitor';
-import FeedbackModal from '@/components/FeedbackModal';
-import ForceSyncButton from '@/components/ForceSyncButton';
-import GasHeatmap from '@/components/GasHeatmap';
-import GlobalStateSearch from '@/components/GlobalStateSearch';
-import { AccessControl } from '@/components/Guard';
-import LanguageToggle from '@/components/LanguageToggle';
-import Leaderboard from '@/components/leaderboard';
-import NetworkStatus from '@/components/NetworkStatus';
-import PRFeed from '@/components/PRFeed';
-import PushNotificationToggle from '@/components/PushNotificationToggle';
-import SecurityScannerResults, { RelayerVault, AuditExport } from '@/components/security';
-import ConsensusWidget from '@/components/ConsensusWidget';
-import ContractCallGraph from '@/components/ContractCallGraph';
-import TaskCard from '@/components/TaskCard';
-import ThemeToggle from '@/components/ThemeToggle';
-import TransactionFeed from '@/components/TransactionFeed';
-import DashboardGrid from '@/components/dashboard/DashboardGrid';
-import SessionTimer from '@/components/timer';
-import { useRole } from '@/context/RoleContext';
-import { useWallet } from '@/context/WalletContext';
-import { AlertBanner } from '@/components/AlertBanner';
-import type { UserRole } from '@/services/roleClient';
+import type { ReactElement } from "react";
+import { useMemo } from "react";
+import type { TFunction } from "i18next";
+import {
+  Activity,
+  ArrowRight,
+  CheckCircle2,
+  Code2,
+  Shield,
+  Trophy,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
+import AuditSessionTimer from "@/components/AuditSessionTimer";
+import ConnectButton from "@/components/ConnectButton";
+import ContractTimeTraveler from "@/components/ContractTimeTraveler";
+import EmergencyHaltButton from "@/components/EmergencyHaltButton";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import EventMonitor from "@/components/EventMonitor";
+import FeedbackModal from "@/components/FeedbackModal";
+import ForceSyncButton from "@/components/ForceSyncButton";
+import GasHeatmap from "@/components/GasHeatmap";
+import GlobalStateSearch from "@/components/GlobalStateSearch";
+import LanguageToggle from "@/components/LanguageToggle";
+import Leaderboard from "@/components/leaderboard";
+import NetworkStatus from "@/components/NetworkStatus";
+import PRFeed from "@/components/PRFeed";
+import PushNotificationToggle from "@/components/PushNotificationToggle";
+import SecurityScannerResults from "@/components/security";
+import RelayerVault from "@/components/security/RelayerVault";
+import AuditExport from "@/components/security/AuditExport";
+import ContractCallGraph from "@/components/ContractCallGraph";
+import TaskCard from "@/components/TaskCard";
+import ThemeToggle from "@/components/ThemeToggle";
+import TransactionFeed from "@/components/TransactionFeed";
+import DashboardGrid from "@/components/dashboard/DashboardGrid";
+import SessionTimer from "@/components/timer";
+import { useRole } from "@/context/RoleContext";
+import { useWallet } from "@/context/WalletContext";
+import { AlertBanner } from "@/components/AlertBanner";
+import type { UserRole } from "@/services/roleClient";
 
-function getRoleLabel(role: UserRole, isLoading: boolean, t: TFunction): string {
+function getRoleLabel(
+  role: UserRole,
+  isLoading: boolean,
+  t: TFunction,
+): string {
   if (isLoading) {
-    return t('role.checking');
+    return t("role.checking");
   }
 
   switch (role) {
-    case 'admin':
-      return t('common.admin');
-    case 'guardian':
-      return t('common.guardian');
+    case "admin":
+      return t("common.admin");
+    case "guardian":
+      return t("common.guardian");
     default:
-      return t('common.unauthorized');
+      return t("common.unauthorized");
   }
 }
 
@@ -56,18 +67,18 @@ function getRoleHelperText(
   t: TFunction,
 ): string {
   if (isLoading) {
-    return t('role.checkingOnChain');
+    return t("role.checkingOnChain");
   }
 
   if (!isConnected) {
-    return t('wallet.connectHelper');
+    return t("wallet.connectHelper");
   }
 
-  if (role === 'unauthorized') {
-    return t('role.noPermissions');
+  if (role === "unauthorized") {
+    return t("role.noPermissions");
   }
 
-  return t('role.onChainAccess');
+  return t("role.onChainAccess");
 }
 
 function getWelcomeTitle(
@@ -77,28 +88,32 @@ function getWelcomeTitle(
   t: TFunction,
 ): string {
   if (!isConnected) {
-    return t('welcome.guestTitle');
+    return t("welcome.guestTitle");
   }
 
   if (isRoleLoading) {
-    return t('welcome.checkingTitle');
+    return t("welcome.checkingTitle");
   }
 
-  return t('welcome.returningTitle', { role: roleLabel });
+  return t("welcome.returningTitle", { role: roleLabel });
 }
 
-function getWelcomeDescription(role: UserRole, isRoleLoading: boolean, t: TFunction): string {
+function getWelcomeDescription(
+  role: UserRole,
+  isRoleLoading: boolean,
+  t: TFunction,
+): string {
   if (isRoleLoading) {
-    return t('welcome.checkingDescription');
+    return t("welcome.checkingDescription");
   }
 
   switch (role) {
-    case 'admin':
-      return t('welcome.adminDescription');
-    case 'guardian':
-      return t('welcome.guardianDescription');
+    case "admin":
+      return t("welcome.adminDescription");
+    case "guardian":
+      return t("welcome.guardianDescription");
     default:
-      return t('welcome.guestDescription');
+      return t("welcome.guestDescription");
   }
 }
 
@@ -108,106 +123,210 @@ export default function Home(): ReactElement {
   const { role, isLoading: isRoleLoading } = useRole();
   const roleLabel = getRoleLabel(role, isRoleLoading, t);
   const roleHelperText = getRoleHelperText(role, isConnected, isRoleLoading, t);
-  const welcomeTitle = getWelcomeTitle(isConnected, isRoleLoading, roleLabel, t);
+  const welcomeTitle = getWelcomeTitle(
+    isConnected,
+    isRoleLoading,
+    roleLabel,
+    t,
+  );
   const welcomeDescription = getWelcomeDescription(role, isRoleLoading, t);
   const widgets = useMemo(() => {
     const list = [
       {
-        id: 'pr-feed',
-        title: t('app.prFeedTitle', { defaultValue: 'PR Validation Queue' }),
+        id: "pr-feed",
+        title: t("app.prFeedTitle", { defaultValue: "PR Validation Queue" }),
         component: (
           <ErrorBoundary>
             <PRFeed />
           </ErrorBoundary>
-        )
+        ),
       },
       {
-        id: 'state-search',
-        title: t('app.stateSearchTitle', { defaultValue: 'Global State Search' }),
+        id: "state-search",
+        title: t("app.stateSearchTitle", {
+          defaultValue: "Global State Search",
+        }),
         component: (
           <ErrorBoundary>
             <GlobalStateSearch />
           </ErrorBoundary>
-        )
+        ),
       },
       {
-        id: 'transaction-feed',
-        title: t('app.transactionFeedTitle', { defaultValue: 'Activity Monitor' }),
+        id: "transaction-feed",
+        title: t("app.transactionFeedTitle", {
+          defaultValue: "Activity Monitor",
+        }),
         component: (
           <ErrorBoundary>
             <TransactionFeed />
           </ErrorBoundary>
-        )
+        ),
       },
       {
-        id: 'security-scanner',
-        title: t('app.securityScannerTitle', { defaultValue: 'Security Check' }),
+        id: "security-scanner",
+        title: t("app.securityScannerTitle", {
+          defaultValue: "Security Check",
+        }),
         component: (
           <ErrorBoundary>
             <SecurityScannerResults />
           </ErrorBoundary>
-        )
+        ),
       },
       {
-        id: 'leaderboard',
-        title: t('app.leaderboardTitle', { defaultValue: 'Guardian Leaderboard' }),
+        id: "leaderboard",
+        title: t("app.leaderboardTitle", {
+          defaultValue: "Guardian Leaderboard",
+        }),
         component: (
           <ErrorBoundary>
             <Leaderboard />
           </ErrorBoundary>
-        )
+        ),
       },
       {
-        id: 'quick-actions',
-        title: t('actions.heading', { defaultValue: 'Quick Actions' }),
+        id: "quick-actions",
+        title: t("actions.heading", { defaultValue: "Quick Actions" }),
         component: (
           <div className="h-full flex flex-col justify-between">
             <div className="grid grid-cols-1 gap-3">
-              <button 
+              <button
                 className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                aria-label={t('actions.networkStatus')}
+                aria-label={t("actions.networkStatus")}
               >
-                <span className="font-medium">{t('actions.networkStatus')}</span>
-                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+                <span className="font-medium">
+                  {t("actions.networkStatus")}
+                </span>
+                <ArrowRight
+                  className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors"
+                  aria-hidden="true"
+                />
               </button>
-              <button 
+              <button
                 className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                aria-label={t('actions.stake')}
+                aria-label={t("actions.stake")}
               >
-                <span className="font-medium">{t('actions.stake')}</span>
-                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+                <span className="font-medium">{t("actions.stake")}</span>
+                <ArrowRight
+                  className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors"
+                  aria-hidden="true"
+                />
               </button>
-              <button 
+              <button
                 className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                aria-label={t('actions.rewards')}
+                aria-label={t("actions.rewards")}
               >
-                <span className="font-medium">{t('actions.rewards')}</span>
-                <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
+                <span className="font-medium">{t("actions.rewards")}</span>
+                <ArrowRight
+                  className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors"
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </div>
-        )
+        ),
       },
       {
-        id: 'gas-heatmap',
-        title: t('app.gasHeatmapTitle', { defaultValue: 'Gas Heatmap Analysis' }),
+        id: "gas-heatmap",
+        title: t("app.gasHeatmapTitle", {
+          defaultValue: "Gas Heatmap Analysis",
+        }),
         component: (
           <ErrorBoundary>
             <GasHeatmap />
           </ErrorBoundary>
-        )
-      }
+        ),
+      },
+      {
+        id: "session-timer",
+        title: t("app.sessionTimerTitle", { defaultValue: "Session Timer" }),
+        component: (
+          <ErrorBoundary>
+            <SessionTimer />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        id: "contract-time-traveler",
+        title: t("app.contractTimeTravelerTitle", {
+          defaultValue: "Contract Time Traveler",
+        }),
+        component: (
+          <ErrorBoundary>
+            <ContractTimeTraveler />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        id: "audit-session-timer",
+        title: t("app.auditSessionTimerTitle", {
+          defaultValue: "Audit Session Timer",
+        }),
+        component: (
+          <ErrorBoundary>
+            <AuditSessionTimer />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        id: "event-monitor",
+        title: t("app.eventMonitorTitle", { defaultValue: "Event Monitor" }),
+        component: (
+          <ErrorBoundary>
+            <EventMonitor />
+          </ErrorBoundary>
+        ),
+      },
+      {
+        id: "contract-call-graph",
+        title: t("app.contractCallGraphTitle", {
+          defaultValue: "Contract Call Graph",
+        }),
+        component: (
+          <ErrorBoundary>
+            <ContractCallGraph />
+          </ErrorBoundary>
+        ),
+      },
     ];
 
-    if (role === 'admin') {
+    if (role === "admin") {
       list.push({
-        id: 'task-card',
-        title: t('admin.management', { defaultValue: 'Admin Management' }),
+        id: "task-card",
+        title: t("admin.management", { defaultValue: "Admin Management" }),
         component: (
           <ErrorBoundary>
             <TaskCard />
           </ErrorBoundary>
-        )
+        ),
+      });
+      list.push({
+        id: "emergency-halt",
+        title: t("admin.emergencyHalt", { defaultValue: "Emergency Halt" }),
+        component: (
+          <ErrorBoundary>
+            <EmergencyHaltButton />
+          </ErrorBoundary>
+        ),
+      });
+      list.push({
+        id: "admin-vault",
+        title: t("admin.relayerVault", { defaultValue: "Relayer Vault" }),
+        component: (
+          <ErrorBoundary>
+            <RelayerVault />
+          </ErrorBoundary>
+        ),
+      });
+      list.push({
+        id: "audit-export",
+        title: t("admin.auditExport", { defaultValue: "Audit Export" }),
+        component: (
+          <ErrorBoundary>
+            <AuditExport />
+          </ErrorBoundary>
+        ),
       });
     }
 
@@ -222,11 +341,18 @@ export default function Home(): ReactElement {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/30">
-                <Shield className="w-5 h-5 sm:w-6 sm:h-6 text-white" aria-hidden="true" />
+                <Shield
+                  className="w-5 h-5 sm:w-6 sm:h-6 text-white"
+                  aria-hidden="true"
+                />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-slate-900 dark:text-white">Vero Guardian</h1>
-                <p className="text-xs text-slate-600 dark:text-slate-400">{t('app.networkName')}</p>
+                <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+                  Vero Guardian
+                </h1>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  {t("app.networkName")}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -261,29 +387,48 @@ export default function Home(): ReactElement {
                 <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl px-4 py-3 border border-slate-200 dark:border-slate-700 shadow-sm transition-transform hover:scale-[1.02]">
                   <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 mb-1">
                     <Trophy className="w-4 h-4" aria-hidden="true" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">{t('stats.reputation')}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      {t("stats.reputation")}
+                    </span>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{isConnected ? reputation : '---'}</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {isConnected ? reputation : "---"}
+                  </p>
                 </div>
                 <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl px-4 py-3 border border-slate-200 dark:border-slate-700 shadow-sm transition-transform hover:scale-[1.02]">
                   <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 mb-1">
                     <CheckCircle2 className="w-4 h-4" aria-hidden="true" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">{t('stats.validations')}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      {t("stats.validations")}
+                    </span>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white">{isConnected ? 12 : '---'}</p>
+                  <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                    {isConnected ? 12 : "---"}
+                  </p>
                 </div>
                 <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl px-4 py-3 border border-slate-200 dark:border-slate-700 shadow-sm transition-transform hover:scale-[1.02]">
                   <div className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 mb-1">
                     <Shield className="w-4 h-4" aria-hidden="true" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">{t('stats.role')}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      {t("stats.role")}
+                    </span>
                   </div>
-                  <p className="text-2xl font-bold text-slate-900 dark:text-white" aria-live="polite">{roleLabel}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{roleHelperText}</p>
+                  <p
+                    className="text-2xl font-bold text-slate-900 dark:text-white"
+                    aria-live="polite"
+                  >
+                    {roleLabel}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {roleHelperText}
+                  </p>
                 </div>
                 <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl px-4 py-3 border border-slate-200 dark:border-slate-700 shadow-sm transition-transform hover:scale-[1.02]">
                   <div className="flex items-center gap-2 text-sky-700 dark:text-sky-400 mb-1">
                     <Activity className="w-4 h-4" aria-hidden="true" />
-                    <span className="text-xs font-semibold uppercase tracking-wider">{t('common.active')}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider">
+                      {t("common.active")}
+                    </span>
                   </div>
                   <p className="text-2xl font-bold text-slate-900 dark:text-white">{isConnected ? t('common.yes') : t('common.no')}</p>
                 </div>
@@ -325,7 +470,11 @@ export default function Home(): ReactElement {
 
             <ErrorBoundary>
               <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
-                <AuditSessionTimer />
+import { ProofHistoryTable } from '@/components/ProofViewer';
+
+// Inside the JSX where AuditSessionTimer is rendered, add the component
+{/* after <AuditSessionTimer /> */}
+<ProofHistoryTable />
               </div>
             </ErrorBoundary>
 
@@ -346,86 +495,14 @@ export default function Home(): ReactElement {
                   <p className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-400 mb-3">
                     {t('admin.management')}
                   </p>
-                  <div className="flex flex-col gap-4">
-                    <TaskCard />
-                    <EmergencyHaltButton />
-                  </div>
                 </div>
-              </ErrorBoundary>
-
-              <ErrorBoundary>
-                <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg mt-6">
-                  <RelayerVault />
-                </div>
-              </ErrorBoundary>
-
-              <ErrorBoundary>
-                <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg mt-6">
-                  <AuditExport />
-                </div>
-              </ErrorBoundary>
-            </AccessControl>
-
-            {/* Leaderboard */}
-            <ErrorBoundary>
-              <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
-                <Leaderboard />
-              </div>
-            </ErrorBoundary>
-
-            {/* Quick Actions */}
-            <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                <Code2 className="w-5 h-5 text-violet-600 dark:text-violet-400" aria-hidden="true" />
-                {t('actions.heading')}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-3">
-                <button 
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label={t('actions.networkStatus')}
-                >
-                  <span className="font-medium">{t('actions.networkStatus')}</span>
-                  <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
-                </button>
-                <button 
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label={t('actions.stake')}
-                >
-                  <span className="font-medium">{t('actions.stake')}</span>
-                  <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
-                </button>
-                <button 
-                  className="w-full flex items-center justify-between px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white rounded-xl border border-slate-200 dark:border-slate-700 transition-colors group focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  aria-label={t('actions.rewards')}
-                >
-                  <span className="font-medium">{t('actions.rewards')}</span>
-                  <ArrowRight className="w-4 h-4 text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white transition-colors" aria-hidden="true" />
-                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Event Monitor - Protocol-wide event timeline */}
-        <div className="mt-6">
-          <ErrorBoundary>
-            <EventMonitor />
-          </ErrorBoundary>
-        </div>
-
-        {/* Gas Usage Heatmap */}
-        <div className="mt-6">
-          <ErrorBoundary>
-            <GasHeatmap />
-          </ErrorBoundary>
-        </div>
-
-        {/* Contract Call Graph */}
-        <div className="mt-6">
-          <ErrorBoundary>
-            <ContractCallGraph />
-          </ErrorBoundary>
-        </div>
+        {/* Dashboard Grid */}
+        <DashboardGrid widgets={widgets} role={role} />
       </main>
 
       {/* Footer */}
@@ -434,11 +511,31 @@ export default function Home(): ReactElement {
           <div className="flex flex-col gap-6">
             <NetworkStatus />
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-slate-600 dark:text-slate-500">{t('app.footerCopyright')}</p>
-              <nav className="flex items-center gap-6" aria-label={t('app.footerNavigation')}>
-                <a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors focus:outline-none focus:underline">{t('common.documentation')}</a>
-                <a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors focus:outline-none focus:underline">{t('common.discord')}</a>
-                <a href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors focus:outline-none focus:underline">{t('common.github')}</a>
+              <p className="text-sm text-slate-600 dark:text-slate-500">
+                {t("app.footerCopyright")}
+              </p>
+              <nav
+                className="flex items-center gap-6"
+                aria-label={t("app.footerNavigation")}
+              >
+                <a
+                  href="#"
+                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors focus:outline-none focus:underline"
+                >
+                  {t("common.documentation")}
+                </a>
+                <a
+                  href="#"
+                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors focus:outline-none focus:underline"
+                >
+                  {t("common.discord")}
+                </a>
+                <a
+                  href="#"
+                  className="text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors focus:outline-none focus:underline"
+                >
+                  {t("common.github")}
+                </a>
               </nav>
             </div>
           </div>
