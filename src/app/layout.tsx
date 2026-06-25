@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/context/ThemeContext';
 import { I18nProvider } from '@/i18n';
 import { NetworkProvider } from '@/context/NetworkContext';
 import { SocketIOProvider } from '@/context/SocketIOContext';
+import DevWalletSwitcher from '@/components/DevWalletSwitcher';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -41,6 +42,8 @@ export default function RootLayout({ children }: RootLayoutProps): ReactElement 
                         </ErrorProvider>
                       </SocketIOProvider>
                     </RoleProvider>
+                    {/* DEV-ONLY: renders null in production */}
+                    <DevWalletSwitcher />
                   </WalletProvider>
               </NetworkProvider>
             </ThemeProvider>
