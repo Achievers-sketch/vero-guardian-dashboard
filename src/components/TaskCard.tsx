@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { CheckCircle2, Clock, AlertCircle, ShieldCheck, Loader2 } from 'lucide-react';
+import { useMemo, useState, useCallback } from 'react';
+import { CheckCircle2, Clock, AlertCircle, Shield, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import TaskFilters from './TaskFilters';
+import { useTaskFilters } from '@/hooks/useTaskFilters';
 import { useToast } from '@/components/Toast';
 
 export interface TaskCardTask {
@@ -18,7 +20,6 @@ export interface TaskCardTask {
 
 interface TaskCardProps {
   tasks?: TaskCardTask[];
-  /** Override the simulated Soroban submit for testing. */
   submitVote?: (taskId: string) => Promise<{ status: string; txHash?: string }>;
 }
 
@@ -48,6 +49,28 @@ const mockTasks: TaskCardTask[] = [
     priority: 'high',
     votes: 5,
   },
+  {
+    id: '4',
+    title: 'Review governance proposal update',
+    status: 'pending',
+    reward: '60 VERO',
+    priority: 'high',
+  },
+  {
+    id: '5',
+    title: 'Test contract upgrade migration',
+    status: 'in-progress',
+    reward: '45 VERO',
+    priority: 'medium',
+  },
+  {
+    id: '6',
+    title: 'Document API rate limit changes',
+    status: 'completed',
+    is_done: true,
+    reward: '20 VERO',
+    priority: 'low',
+  },
 ];
 
 function delay(ms: number): Promise<void> {
@@ -62,13 +85,26 @@ async function defaultSubmitVote(_taskId: string): Promise<{ status: string; txH
   return { status: 'success', txHash: `0x${Math.random().toString(16).slice(2, 10)}` };
 }
 
+export function matchesFilter(task: TaskCardTask, status: string, priority: string): boolean {
+  const resolvedStatus = task.is_done ? 'completed' : task.status;
+  if (status !== 'all' && resolvedStatus !== status) return false;
+  if (priority !== 'all' && task.priority !== priority) return false;
+  return true;
+}
+
 export default function TaskCard({ tasks = mockTasks, submitVote = defaultSubmitVote }: TaskCardProps) {
   const { t } = useTranslation();
+  const { filters } = useTaskFilters();
   const { showToast } = useToast();
 
   const [pendingVotes, setPendingVotes] = useState<Record<string, boolean>>({});
   const [optimisticVotes, setOptimisticVotes] = useState<Record<string, number>>({});
   const [optimisticStatus, setOptimisticStatus] = useState<Record<string, TaskCardTask['status']>>({});
+
+  const filteredTasks = useMemo(
+    () => tasks.filter((task) => matchesFilter(task, filters.status, filters.priority)),
+    [tasks, filters.status, filters.priority],
+  );
 
   const handleVerify = useCallback(
     async (task: TaskCardTask) => {
@@ -144,78 +180,86 @@ export default function TaskCard({ tasks = mockTasks, submitVote = defaultSubmit
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-4">
-        <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+        <Shield className="w-5 h-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
         <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{t('tasks.heading')}</h2>
       </div>
 
-      <div className="space-y-3">
-        {tasks.map((task) => {
-          const baseStatus = task.is_done ? 'completed' : task.status;
-          const status = optimisticStatus[task.id] ?? baseStatus;
-          const title = task.title ?? t(task.titleKey ?? '');
-          const isPending = pendingVotes[task.id] ?? false;
-          const canVote = !task.is_done && status !== 'completed' && !isPending;
-          const voteCount = (task.votes ?? 0) + (optimisticVotes[task.id] ?? 0);
+      <TaskFilters />
 
-          return (
-            <div
-              key={task.id}
-              className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-sm"
-            >
-              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                <div className="flex items-start gap-3 flex-1 w-full">
-                  {getStatusIcon(status)}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-medium text-slate-900 dark:text-white">{title}</h3>
-                      {getPriorityBadge(task.priority)}
+      {filteredTasks.length === 0 ? (
+        <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-6">
+          {t('tasks.filter.noResults')}
+        </p>
+      ) : (
+        <div className="space-y-3">
+          {filteredTasks.map((task) => {
+            const baseStatus = task.is_done ? 'completed' : task.status;
+            const status = optimisticStatus[task.id] ?? baseStatus;
+            const title = task.title ?? t(task.titleKey ?? '');
+            const isPending = pendingVotes[task.id] ?? false;
+            const canVote = !task.is_done && status !== 'completed' && !isPending;
+            const voteCount = (task.votes ?? 0) + (optimisticVotes[task.id] ?? 0);
+
+            return (
+              <div
+                key={task.id}
+                className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 hover:border-slate-300 dark:hover:border-slate-600 transition-colors shadow-sm"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 flex-1 w-full">
+                    {getStatusIcon(status)}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-slate-900 dark:text-white">{title}</h3>
+                        {getPriorityBadge(task.priority)}
+                      </div>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        {t('common.status')}:{' '}
+                        <span
+                          className={`capitalize font-medium ${
+                            status === 'completed'
+                              ? 'text-emerald-700 dark:text-emerald-400'
+                              : status === 'in-progress'
+                              ? 'text-amber-700 dark:text-amber-400'
+                              : 'text-slate-600 dark:text-slate-400'
+                          }`}
+                        >
+                          {getStatusLabel(status)}
+                        </span>
+                      </p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+                        {t('tasks.votes', { count: voteCount })}
+                      </p>
                     </div>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      {t('common.status')}:{' '}
-                      <span
-                        className={`capitalize font-medium ${
-                          status === 'completed'
-                            ? 'text-emerald-700 dark:text-emerald-400'
-                            : status === 'in-progress'
-                            ? 'text-amber-700 dark:text-amber-400'
-                            : 'text-slate-600 dark:text-slate-400'
-                        }`}
+                  </div>
+                  <div className="text-right space-y-2">
+                    <span className="block text-lg font-semibold text-indigo-600 dark:text-indigo-400">{task.reward}</span>
+                    {isPending ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="rounded-lg bg-slate-100 dark:bg-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 cursor-wait transition-colors flex items-center gap-2"
                       >
-                        {getStatusLabel(status)}
-                      </span>
-                    </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-                      {t('tasks.votes', { count: voteCount })}
-                    </p>
+                        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                        {t('tasks.verify.pending')}
+                      </button>
+                    ) : canVote ? (
+                      <button
+                        type="button"
+                        onClick={() => handleVerify(task)}
+                        className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                        aria-label={`Verify quality for ${title}`}
+                      >
+                        {t('tasks.verify.action')}
+                      </button>
+                    ) : null}
                   </div>
                 </div>
-                <div className="text-right space-y-2">
-                  <span className="block text-lg font-semibold text-indigo-600 dark:text-indigo-400">{task.reward}</span>
-                  {isPending ? (
-                    <button
-                      type="button"
-                      disabled
-                      className="rounded-lg bg-slate-100 dark:bg-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 cursor-wait transition-colors flex items-center gap-2"
-                    >
-                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                      {t('tasks.verify.pending')}
-                    </button>
-                  ) : canVote ? (
-                    <button
-                      type="button"
-                      onClick={() => handleVerify(task)}
-                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
-                      aria-label={`Verify quality for ${title}`}
-                    >
-                      {t('tasks.verify.action')}
-                    </button>
-                  ) : null}
-                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

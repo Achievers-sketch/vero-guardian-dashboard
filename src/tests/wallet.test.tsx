@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { WalletProvider, useWallet } from '@/context/WalletContext';
+import { getSessionItem } from '@/auth/session';
 
 jest.mock('@/auth/session', () => {
   const store: Record<string, string> = {};
@@ -218,7 +219,7 @@ describe('WalletContext', () => {
       await waitFor(() => expect(screen.getByTestId('is-loading')).toHaveTextContent('Ready'));
       fireEvent.click(screen.getByTestId('connect-btn'));
 
-      await waitFor(() => expect(localStorage.getItem(STORAGE_KEY)).toBe(PUBLIC_KEY));
+      await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY));
     });
 
     it('should restore wallet from localStorage when it matches the current Freighter address', async () => {
@@ -234,7 +235,7 @@ describe('WalletContext', () => {
 
       await waitFor(() => expect(screen.getByTestId('public-key')).toHaveTextContent(PUBLIC_KEY));
       expect(screen.getByTestId('is-connected')).toHaveTextContent('Connected');
-      expect(localStorage.getItem(STORAGE_KEY)).toBe(PUBLIC_KEY);
+      await expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY);
     });
 
     it('should clear stored wallet when Freighter is disconnected on restore', async () => {
@@ -356,7 +357,7 @@ describe('WalletContext', () => {
         </WalletProvider>
       );
 
-      await waitFor(() => expect(localStorage.getItem(STORAGE_KEY)).toBe(PUBLIC_KEY));
+      await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY));
 
       fireEvent.click(screen.getByTestId('disconnect-btn'));
 
@@ -398,7 +399,7 @@ describe('WalletContext', () => {
       await waitFor(() => expect(screen.getByTestId('is-loading')).toHaveTextContent('Ready'));
       fireEvent.click(screen.getByTestId('connect-btn'));
 
-      await waitFor(() => expect(localStorage.getItem(STORAGE_KEY)).toBe(PUBLIC_KEY));
+      await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY));
 
       unmount();
 

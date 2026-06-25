@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { WalletProvider, useWallet } from '@/context/WalletContext';
+import { getSessionItem } from '@/auth/session';
 
 jest.mock('@/auth/session', () => {
   const store: Record<string, string> = {};
@@ -87,7 +88,7 @@ describe('WalletContext multi-provider support', () => {
 
     await waitFor(() => expect(screen.getByTestId('pk')).toHaveTextContent(RABET_KEY));
     expect(screen.getByTestId('provider')).toHaveTextContent('rabet');
-    expect(localStorage.getItem(STORAGE_KEY)).toBe(RABET_KEY);
-    expect(localStorage.getItem(PROVIDER_STORAGE_KEY)).toBe('rabet');
+    await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(RABET_KEY));
+    await waitFor(() => expect(getSessionItem(PROVIDER_STORAGE_KEY)).resolves.toBe('rabet'));
   });
 });
