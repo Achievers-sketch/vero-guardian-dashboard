@@ -119,7 +119,7 @@ function busSubscribe(listener: BusListener): () => void {
   return () => listeners.delete(listener);
 }
 
-function busPublish(event: ProtocolEvent): void {
+export function busPublish(event: ProtocolEvent): void {
   for (const listener of listeners) {
     try { listener(event); } catch { /* isolate listener errors */ }
   }

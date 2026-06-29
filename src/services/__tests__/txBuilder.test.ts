@@ -275,6 +275,13 @@ describe('BatchTransactionBuilder (Soroban)', () => {
         async (_tx: StellarSdk.Transaction | StellarSdk.FeeBumpTransaction) => ({
           id: '1',
           latestLedger: 100,
+          transactionData: new StellarSdk.SorobanDataBuilder().build().toXDR('base64'),
+          minResourceFee: '100',
+          cost: { cpuInsns: '0', memBytes: '0' },
+          results: [{
+            auth: [] as string[],
+            xdr: StellarSdk.xdr.ScVal.scvVoid().toXDR('base64'),
+          }],
           transactionData: new StellarSdk.SorobanDataBuilder().build(),
           minResourceFee: '100',
           cost: { cpuInsns: '0', memBytes: '0' },

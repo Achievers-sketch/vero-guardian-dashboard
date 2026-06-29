@@ -1,5 +1,13 @@
 'use client';
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CheckCircle2, Clock, AlertCircle, ShieldCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useEvents } from '@/hooks/useEvents';
+import { useTaskChainEvents } from '@/hooks/useTaskChainEvents';
+import { useChainState } from '@/hooks/useChainState';
+import { useState, useCallback } from 'react';
+import { CheckCircle2, Clock, AlertCircle, ShieldCheck, Loader2 } from 'lucide-react';
 import { useMemo, useState, useCallback } from 'react';
 import { CheckCircle2, Clock, AlertCircle, Shield, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +28,8 @@ export interface TaskCardTask {
 
 interface TaskCardProps {
   tasks?: TaskCardTask[];
+  pollIntervalMs?: number;
+  /** Override the simulated Soroban submit for testing. */
   submitVote?: (taskId: string) => Promise<{ status: string; txHash?: string }>;
 }
 
@@ -73,6 +83,38 @@ const mockTasks: TaskCardTask[] = [
   },
 ];
 
+function statusSortWeight(task: TaskCardTask): number {
+  const s = task.is_done ? 'completed' : task.status;
+  if (s === 'completed') return 3;
+  if (s === 'in-progress') return 1;
+  return 2;
+}
+
+export default function TaskCard({
+  tasks: initialTasks = mockTasks,
+  pollIntervalMs,
+}: TaskCardProps) {
+  const { t } = useTranslation();
+  const { emit } = useEvents();
+  const { forceSync } = useChainState({ cacheKey: 'tasks' });
+  const { lastEvent } = useTaskChainEvents({ intervalMs: pollIntervalMs });
+
+  const [taskList, setTaskList] = useState<TaskCardTask[]>(initialTasks);
+  const [completedIds, setCompletedIds] = useState<Set<string>>(
+    () => new Set(initialTasks.filter((t) => t.is_done || t.status === 'completed').map((t) => t.id)),
+  );
+  const [animatingId, setAnimatingId] = useState<string | null>(null);
+
+  const sortedTasks = useMemo(
+    () => [...taskList].sort((a, b) => statusSortWeight(a) - statusSortWeight(b)),
+    [taskList],
+  );
+
+  useEffect(() => {
+    if (initialTasks !== mockTasks) {
+      setTaskList(initialTasks);
+    }
+  }, [initialTasks]);
 function delay(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -146,7 +188,51 @@ export default function TaskCard({ tasks = mockTasks, submitVote = defaultSubmit
     [pendingVotes, optimisticVotes, optimisticStatus, submitVote, showToast, t],
   );
 
-  const getStatusIcon = (status: TaskCardTask['status']) => {
+  useEffect(() => {
+    if (!lastEvent) return;
+    const { taskId } = lastEvent;
+    setTaskList((prev) => {
+      const existing = prev.find((t) => t.id === taskId);
+      if (!existing || existing.is_done || existing.status === 'completed') return prev;
+      return prev.map((t) =>
+        t.id === taskId ? { ...t, status: 'completed', is_done: true } : t,
+      );
+    });
+    setCompletedIds((prev) => new Set(prev).add(taskId));
+    setAnimatingId(taskId);
+    const timer = setTimeout(() => setAnimatingId(null), 600);
+    return () => clearTimeout(timer);
+  }, [lastEvent]);
+
+  const handleVote = useCallback(
+    (task: TaskCardTask) => {
+      const title = task.title ?? t(task.titleKey ?? '');
+      setTaskList((prev) =>
+        prev.map((t) =>
+          t.id === task.id ? { ...t, status: 'completed', is_done: true } : t,
+        ),
+      );
+      setCompletedIds((prev) => new Set(prev).add(task.id));
+      setAnimatingId(task.id);
+      setTimeout(() => setAnimatingId(null), 600);
+
+      emit({
+        type: 'task_verified',
+        actor: 'guardian',
+        resource: title,
+        resourceId: task.id,
+        metadata: { taskId: task.id, reward: task.reward },
+      });
+
+      forceSync(['tasks', `task:${task.id}`]);
+    },
+    [emit, forceSync, t],
+  );
+
+  const getStatusIcon = (status: TaskCardTask['status'], isAnimating: boolean) => {
+    if (isAnimating) {
+      return <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 animate-bounce" aria-hidden="true" />;
+    }
     switch (status) {
       case 'completed':
         return <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />;
@@ -184,6 +270,36 @@ export default function TaskCard({ tasks = mockTasks, submitVote = defaultSubmit
         <h2 className="text-xl font-semibold text-slate-900 dark:text-white">{t('tasks.heading')}</h2>
       </div>
 
+      <div className="space-y-3">
+        {sortedTasks.map((task) => {
+          const status = task.is_done ? 'completed' : task.status;
+          const title = task.title ?? t(task.titleKey ?? '');
+          const canVote = !task.is_done && status !== 'completed';
+          const isAnimating = animatingId === task.id;
+        {tasks.map((task) => {
+          const baseStatus = task.is_done ? 'completed' : task.status;
+          const status = optimisticStatus[task.id] ?? baseStatus;
+          const title = task.title ?? t(task.titleKey ?? '');
+          const isPending = pendingVotes[task.id] ?? false;
+          const canVote = !task.is_done && status !== 'completed' && !isPending;
+          const voteCount = (task.votes ?? 0) + (optimisticVotes[task.id] ?? 0);
+
+          return (
+            <div
+              key={task.id}
+              className={`bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm transition-all duration-500 ${
+                isAnimating
+                  ? 'border-emerald-400 dark:border-emerald-500 scale-[1.02] animate-in zoom-in-95 fade-in'
+                  : 'hover:border-slate-300 dark:hover:border-slate-600'
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex items-start gap-3 flex-1 w-full">
+                  {getStatusIcon(status, isAnimating)}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-slate-900 dark:text-white">{title}</h3>
+                      {getPriorityBadge(task.priority)}
       <TaskFilters />
 
       {filteredTasks.length === 0 ? (
@@ -254,6 +370,31 @@ export default function TaskCard({ tasks = mockTasks, submitVote = defaultSubmit
                       </button>
                     ) : null}
                   </div>
+                </div>
+                <div className="text-right space-y-2">
+                  <span className="block text-lg font-semibold text-indigo-600 dark:text-indigo-400">{task.reward}</span>
+                  {isPending ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="rounded-lg bg-slate-100 dark:bg-slate-700 px-3 py-1.5 text-sm font-semibold text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 cursor-wait transition-colors flex items-center gap-2"
+                    >
+                      <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                      {t('tasks.verify.pending')}
+                    </button>
+                  ) : canVote ? (
+                    <button
+                      type="button"
+                      onClick={() => handleVote(task)}
+                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 active:scale-95"
+                      aria-label={`Vote for ${title}`}
+                      onClick={() => handleVerify(task)}
+                      className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+                      aria-label={`Verify quality for ${title}`}
+                    >
+                      {t('tasks.verify.action')}
+                    </button>
+                  ) : null}
                 </div>
               </div>
             );

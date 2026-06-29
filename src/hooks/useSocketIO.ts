@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import {
   connectSocket,
@@ -54,10 +55,12 @@ export function useSocketIO(options: UseSocketIOOptions = {}): UseSocketIOResult
   const [status, setStatus] = useState<SocketConnectionStatus>(getSocketStatus);
   const [lastEvent, setLastEvent] = useState<SocketStateEvent | null>(null);
   const { emit } = useEvents({ maxEvents: 200 });
+  const connectedRef = useRef(false);
 
   useEffect(() => {
     const unsubStatus = onSocketStatus((newStatus) => {
       setStatus(newStatus);
+      connectedRef.current = newStatus === 'connected';
     });
 
     const unsubEvent = onSocketEvent((event) => {
@@ -102,6 +105,11 @@ export function useSocketIO(options: UseSocketIOOptions = {}): UseSocketIOResult
   }, [autoConnect, url, authToken]);
 
   const connect = useCallback((token?: string) => {
+    try {
+      connectSocket(url, token);
+    } catch {
+      setStatus('error');
+    }
     try { connectSocket(url, token); } catch { setStatus('error'); }
   }, [url]);
 
