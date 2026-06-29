@@ -25,6 +25,7 @@ import GlobalStateSearch from "@/components/GlobalStateSearch";
 import LanguageToggle from "@/components/LanguageToggle";
 import Leaderboard from "@/components/leaderboard";
 import NetworkStatus from "@/components/NetworkStatus";
+import { ProofHistoryTable } from "@/components/ProofViewer";
 import PRFeed from "@/components/PRFeed";
 import PushNotificationToggle from "@/components/PushNotificationToggle";
 import SecurityScannerResults from "@/components/security";
@@ -35,6 +36,7 @@ import TaskCard from "@/components/TaskCard";
 import ThemeToggle from "@/components/ThemeToggle";
 import TransactionFeed from "@/components/TransactionFeed";
 import DashboardGrid from "@/components/dashboard/DashboardGrid";
+import { AccessControl } from "@/components/Guard";
 import SessionTimer from "@/components/timer";
 import { useRole } from "@/context/RoleContext";
 import { useWallet } from "@/context/WalletContext";
@@ -470,11 +472,7 @@ export default function Home(): ReactElement {
 
             <ErrorBoundary>
               <div className="bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-lg">
-import { ProofHistoryTable } from '@/components/ProofViewer';
-
-// Inside the JSX where AuditSessionTimer is rendered, add the component
-{/* after <AuditSessionTimer /> */}
-<ProofHistoryTable />
+                <ProofHistoryTable />
               </div>
             </ErrorBoundary>
 
@@ -496,8 +494,8 @@ import { ProofHistoryTable } from '@/components/ProofViewer';
                     {t('admin.management')}
                   </p>
                 </div>
-              </div>
-            </div>
+              </ErrorBoundary>
+            </AccessControl>
           </div>
         </div>
 
