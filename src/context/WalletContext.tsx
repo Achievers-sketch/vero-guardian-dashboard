@@ -43,6 +43,11 @@ interface WalletContextType {
   /** Connect with a specific provider; defaults to Freighter when omitted. */
   connect: (providerId?: WalletProviderId) => Promise<void>;
   disconnect: () => void;
+  /**
+   * DEV-ONLY: Manually override the active public key without going through
+   * a real wallet handshake. Always a no-op in production.
+   */
+  setMockPublicKey: (key: string) => void;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -280,6 +285,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     clearWalletState();
   }, [publicKey, activeProvider, clearWalletState, emit]);
 
+  /** DEV-ONLY: override the active public key for local development convenience. */
+  const setMockPublicKey = useCallback(
+    (key: string) => {
+      if (process.env.NODE_ENV === 'production') {
+        return;
+      }
+      applyVerifiedPublicKey(key, DEFAULT_WALLET_PROVIDER_ID);
+    },
+    [applyVerifiedPublicKey]
+  );
+
   useEffect(() => {
     const unsubscribe = sessionManager.subscribe(() => {
       disconnect();
@@ -308,8 +324,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       availableProviders,
       connect,
       disconnect,
+      setMockPublicKey,
     }),
-    [activeProvider, availableProviders, connect, disconnect, error, isLoading, publicKey, reputation]
+    [activeProvider, availableProviders, connect, disconnect, error, isLoading, publicKey, reputation, setMockPublicKey]
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;

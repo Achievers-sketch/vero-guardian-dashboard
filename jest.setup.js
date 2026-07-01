@@ -22,6 +22,21 @@ if (typeof globalThis.crypto === 'undefined') {
         } catch {
                 Object.defineProperty(globalThis, 'crypto', { value: webcrypto, configurable: true });
         }
+// Polyfill crypto.subtle and TextEncoder/TextDecoder for jsdom
+if (typeof globalThis.crypto !== 'undefined' && !globalThis.crypto.subtle) {
+  const { webcrypto } = require('crypto');
+  Object.defineProperty(globalThis, 'crypto', {
+    value: webcrypto,
+    writable: false,
+    configurable: true,
+  });
+}
+const { TextEncoder, TextDecoder } = require('util');
+if (typeof globalThis.TextEncoder === 'undefined') {
+  globalThis.TextEncoder = TextEncoder;
+}
+if (typeof globalThis.TextDecoder === 'undefined') {
+  globalThis.TextDecoder = TextDecoder;
 }
 
 // Mock File System Access API (showSaveFilePicker)

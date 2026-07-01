@@ -90,5 +90,7 @@ describe('WalletContext multi-provider support', () => {
     expect(screen.getByTestId('provider')).toHaveTextContent('rabet');
     expect(await getSessionItem(STORAGE_KEY)).toBe(RABET_KEY);
     expect(await getSessionItem(PROVIDER_STORAGE_KEY)).toBe('rabet');
+    await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(RABET_KEY));
+    await waitFor(() => expect(getSessionItem(PROVIDER_STORAGE_KEY)).resolves.toBe('rabet'));
   });
 });

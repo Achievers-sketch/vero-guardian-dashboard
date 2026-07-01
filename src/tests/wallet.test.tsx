@@ -220,6 +220,7 @@ describe('WalletContext', () => {
       fireEvent.click(screen.getByTestId('connect-btn'));
 
       await waitFor(async () => expect(await getSessionItem(STORAGE_KEY)).toBe(PUBLIC_KEY));
+      await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY));
     });
 
     it('should restore wallet from localStorage when it matches the current Freighter address', async () => {
@@ -236,6 +237,7 @@ describe('WalletContext', () => {
       await waitFor(() => expect(screen.getByTestId('public-key')).toHaveTextContent(PUBLIC_KEY));
       expect(screen.getByTestId('is-connected')).toHaveTextContent('Connected');
       expect(await getSessionItem(STORAGE_KEY)).toBe(PUBLIC_KEY);
+      await expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY);
     });
 
     it('should clear stored wallet when Freighter is disconnected on restore', async () => {
@@ -358,6 +360,7 @@ describe('WalletContext', () => {
       );
 
       await waitFor(async () => expect(await getSessionItem(STORAGE_KEY)).toBe(PUBLIC_KEY));
+      await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY));
 
       fireEvent.click(screen.getByTestId('disconnect-btn'));
 
@@ -400,6 +403,7 @@ describe('WalletContext', () => {
       fireEvent.click(screen.getByTestId('connect-btn'));
 
       await waitFor(async () => expect(await getSessionItem(STORAGE_KEY)).toBe(PUBLIC_KEY));
+      await waitFor(() => expect(getSessionItem(STORAGE_KEY)).resolves.toBe(PUBLIC_KEY));
 
       unmount();
 

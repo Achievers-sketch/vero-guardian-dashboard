@@ -1,0 +1,526 @@
+{
+  "common": {
+    "active": "Activo",
+    "admin": "Admin",
+    "documentation": "Documentacion",
+    "discord": "Discord",
+    "github": "GitHub",
+    "guardian": "Guardian",
+    "no": "No",
+    "status": "Estado",
+    "unauthorized": "No autorizado",
+    "yes": "Si"
+  },
+  "app": {
+    "networkName": "Red de validacion descentralizada",
+    "footerCopyright": "© 2026 Vero Guardian. Todos los derechos reservados.",
+    "footerNavigation": "Navegacion del pie de pagina"
+  },
+  "language": {
+    "ariaLabel": "Seleccionar idioma",
+    "label": "Idioma"
+  },
+  "wallet": {
+    "connect": "Conectar billetera",
+    "connectHelper": "Conecta la billetera",
+    "connecting": "Conectando billetera...",
+    "disconnect": "Desconectar billetera",
+    "loading": "Cargando...",
+    "choose": "Elige una billetera",
+    "notInstalled": "No instalada",
+    "noProviders": "No se detectaron billeteras Stellar. Instala Freighter o Rabet.",
+    "providerAria": "Conectar con {{name}}"
+  },
+  "theme": {
+    "ariaLabel": "El tema actual es {{theme}}. Haz clic para cambiar el tema."
+  },
+  "sync": {
+    "force": "Forzar sync",
+    "forceAria": "Forzar sincronizacion del estado on-chain. Estado actual: {{status}}.",
+    "syncing": "Sincronizando"
+  },
+  "role": {
+    "checking": "Verificando...",
+    "checkingOnChain": "Verificando rol en cadena",
+    "noPermissions": "Sin permisos del panel",
+    "onChainAccess": "Acceso en cadena"
+  },
+  "welcome": {
+    "guestTitle": "Bienvenido a Vero Guardian!",
+    "checkingTitle": "Verificando acceso al panel...",
+    "returningTitle": "Bienvenido de nuevo, {{role}}!",
+    "checkingDescription": "Verificando tu rol en cadena antes de activar acciones del panel.",
+    "adminDescription": "Gestiona tareas de guardianes, monitorea validaciones y mantiene segura la red.",
+    "guardianDescription": "Revisa y valida pull requests para mantener la seguridad de la red y ganar recompensas.",
+    "guestDescription": "Conecta una billetera autorizada para revisar y validar pull requests."
+  },
+  "stats": {
+    "reputation": "Reputacion",
+    "role": "Rol",
+    "validations": "Validaciones"
+  },
+  "admin": {
+    "management": "Gestion de administracion"
+  },
+  "emergencyHalt": {
+    "label": "Parada de emergencia",
+    "halted": "Contrato detenido",
+    "halting": "Deteniendo contrato…",
+    "noContract": "Contrato no configurado",
+    "missingWallet": "Conecta la cartera primero",
+    "unauthorized": "Solo administradores",
+    "confirmTitle": "Confirmar parada de emergencia",
+    "confirmDescription": "Esto detendra todas las operaciones del contrato. Esta accion es irreversible y requiere autorizacion de administrador.",
+    "confirmExecute": "Si, detener contrato",
+    "confirmCancel": "Cancelar",
+    "ariaLabel": "Interruptor de parada de emergencia",
+    "toast": {
+      "connectWallet": "Conecta tu cartera para detener el contrato.",
+      "noContract": "ID de contrato no configurado (NEXT_PUBLIC_CONTRACT_ID).",
+      "halted": "Contrato detenido exitosamente.",
+      "failed": "Error al detener el contrato."
+    }
+  },
+  "actions": {
+    "heading": "Acciones rapidas",
+    "networkStatus": "Ver estado de la red",
+    "stake": "Bloquear tokens VERO",
+    "rewards": "Historial de recompensas"
+  },
+  "prs": {
+    "loading": "Cargando feed de validaciones...",
+    "heading": "Validaciones pendientes",
+    "count_one": "{{count}} PR",
+    "count_other": "{{count}} PRs",
+    "summary": "PR #{{id}} - {{author}}",
+    "ariaLabel": "PR numero {{id}}: {{title}}",
+    "votes_one": "{{count}} voto",
+    "votes_other": "{{count}} votos",
+    "titleMultiSig": "Agregar soporte multifirma para transacciones",
+    "titleGas": "Optimizar tarifas de gas del contrato inteligente",
+    "titleRateLimit": "Implementar limites de tasa para endpoints API"
+  },
+  "tasks": {
+    "heading": "Tareas de guardian",
+    "verifyMultiSig": "Verificar seguridad de transacciones multifirma",
+    "auditGas": "Auditar cambios de optimizacion de gas",
+    "validateRateLimit": "Validar implementacion de limites de tasa",
+    "priority": {
+      "high": "ALTA",
+      "medium": "MEDIA",
+      "low": "BAJA"
+    },
+    "status": {
+      "completed": "completado",
+      "pending": "pendiente",
+      "inProgress": "en progreso"
+    },
+    "filter": {
+      "all": "Todas",
+      "statusLabel": "Estado",
+      "statusAria": "Filtrar tareas por estado",
+      "priorityLabel": "Prioridad",
+      "priorityAria": "Filtrar tareas por prioridad",
+      "clear": "Limpiar filtros",
+      "noResults": "Ninguna tarea coincide con los filtros seleccionados."
+    },
+    "verify": {
+      "action": "Verificar calidad",
+      "pending": "Verificando…",
+      "toast": {
+        "success": "Verificado! Tx {{txHash}}…",
+        "error": "Verificacion fallida. Cambios revertidos."
+      }
+    },
+    "votes": "{{count}} votos"
+  },
+  "vote": {
+    "voted": "Votado",
+    "signing": "Firmando...",
+    "checking": "Verificando...",
+    "unauthorized": "No autorizado",
+    "vote": "Votar",
+    "aria": {
+      "voted": "Votado por PR #{{prId}}",
+      "signing": "Emitiendo voto para PR #{{prId}}",
+      "checkingAccess": "Verificando acceso de voto para PR #{{prId}}",
+      "missingWallet": "Conecta la billetera para votar por PR #{{prId}}",
+      "unauthorized": "Sin autorizacion para votar por PR #{{prId}}",
+      "ready": "Votar por PR #{{prId}}"
+    },
+    "toast": {
+      "connectWallet": "Conecta tu billetera primero",
+      "notGuardian": "No eres un Guardian autorizado",
+      "recorded": "Voto registrado",
+      "failed": "El voto fallo"
+    },
+    "tx": {
+      "pending": "Esperando firma de Freighter…",
+      "success": "Voto registrado en la cadena.",
+      "viewTx": "Ver transaccion",
+      "errorUserRejected": "Firma rechazada. Abre Freighter e intenta de nuevo.",
+      "errorNetwork": "La transaccion fallo por un error de red o de contrato. Por favor intenta de nuevo."
+    }
+  },
+  "network": {
+    "ariaLabel": "Estado de red Stellar RPC",
+    "heading": "Estado de Stellar RPC",
+    "healthy": "Saludable",
+    "degraded": "Degradado",
+    "offline": "Sin conexion",
+    "latencyEmpty": "Latencia -",
+    "latency": "{{latency}} ms",
+    "initialMessage": "Verificando salud RPC...",
+    "httpError": "RPC devolvio HTTP {{status}}. Las solicitudes de red pueden fallar; intenta de nuevo o cambia de endpoint RPC.",
+    "unreachable": "RPC inaccesible en {{endpoint}}. Revisa tu conexion de red o cambia de endpoint RPC.",
+    "invalidJson": "RPC devolvio una respuesta de salud no valida. Cambia de endpoint RPC si continua.",
+    "healthError": "Error de getHealth RPC: {{message}}",
+    "reportedStatus": "RPC reporto {{status}}",
+    "unavailable": "Estado de salud RPC no disponible. Cambia de endpoint RPC si continua.",
+    "slow": "RPC respondio lentamente. Las solicitudes de red pueden tardar mas de lo esperado.",
+    "normal": "RPC getHealth responde normalmente",
+    "returnedError": "RPC getHealth devolvio un error"
+  },
+  "transactionFeed": {
+    "ariaLabel": "Feed de transacciones en vivo",
+    "heading": "Transacciones en vivo",
+    "statusConnecting": "Conectando",
+    "statusLive": "En vivo",
+    "statusError": "Desconectado",
+    "empty": "Escuchando nuevas transacciones...",
+    "error": "Feed en vivo desconectado. Puede ser necesario recargar la pagina para reconectar.",
+    "successful": "Transaccion exitosa",
+    "failed": "Transaccion fallida",
+    "ledger": "Ledger {{ledger}}",
+    "operations": "{{count}} ops",
+    "viewOnExplorer": "Ver transaccion en Stellar Expert"
+  },
+  "gasHeatmap": {
+    "ariaLabel": "Mapa de calor de uso de gas por funcion del contrato",
+    "heading": "Mapa de calor de uso de gas",
+    "subheading": "Costo de recursos por funcion del contrato",
+    "hotspotsHeading": "Puntos calientes",
+    "legendLow": "Bajo",
+    "legendHigh": "Alto",
+    "empty": "No hay datos de uso de gas disponibles.",
+    "metrics": {
+      "cpuInsns": "CPU",
+      "memBytes": "Memoria",
+      "ledgerReads": "Lecturas",
+      "ledgerWrites": "Escrituras",
+      "events": "Eventos"
+    }
+  },
+  "errorBoundary": {
+    "title": "Algo salio mal",
+    "description": "El panel encontro un error inesperado.",
+    "retry": "Intentar de nuevo"
+  },
+  "toast": {
+    "closeNotification": "Cerrar notificacion"
+  },
+  "audit": {
+    "loading": "Cargando informacion del PR...",
+    "error": "Error: {{message}}",
+    "unavailable": "No hay datos del PR disponibles.",
+    "heading": "Auditoria de PR de GitHub",
+    "match": "Coincide",
+    "mismatch": "No coincide",
+    "author": "Autor: {{author}}",
+    "hash": "Hash: {{hash}}",
+    "failedLoad": "No se pudieron cargar los datos del PR",
+    "downloadReport": "Descargar informe"
+  },
+  "contractTimeTraveler": {
+    "heading": "Viaje en el tiempo del contrato",
+    "sliderAriaLabel": "Linea de tiempo de instantaneas del estado del contrato",
+    "sliderValueText": "Instantanea {{index}} de {{total}}: {{label}}",
+    "previous": "Instantanea anterior",
+    "next": "Siguiente instantanea",
+    "position": "{{index}} / {{total}}",
+    "ledger": "Ledger {{ledger}}",
+    "tx": "Tx",
+    "stateHeading": "Estado del contrato",
+    "noChanges": "Sin cambios respecto a la instantanea anterior",
+    "diffSummary_one": "{{count}} campo modificado",
+    "diffSummary_other": "{{count}} campos modificados",
+    "empty": "No hay historial de estado del contrato disponible."
+  },
+  "navigation": {
+    "dashboard": "Panel",
+    "validations": "Validaciones",
+    "tasks": "Tareas",
+    "settings": "Configuracion"
+  },
+  "voteProgressBar": {
+    "ariaLabel": "Progreso de votos: {{approveCount}} aprobados, {{rejectCount}} rechazados",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "tooltipVotes_one": "{{count}} voto",
+    "tooltipVotes_other": "{{count}} votos",
+    "quorumReached": "Quorum alcanzado",
+    "quorumNeeded": "Se necesitan {{needed}} voto(s) de aprobacion mas para alcanzar el quorum de {{quorum}}"
+  },
+  "contractCallGraph": {
+    "heading": "Grafo de llamadas del contrato",
+    "subheading": "Relaciones de llamadas entre funciones del contrato Vero",
+    "loading": "Renderizando grafo...",
+    "empty": "No hay datos del grafo de llamadas disponibles.",
+    "tapHint": "Toca un nodo para inspeccionar",
+    "kindEntry": "Entrada",
+    "kindInternal": "Interno",
+    "kindExternal": "Externo",
+    "kindEvent": "Evento",
+    "edgeConditional": "Llamada condicional",
+    "gasCost": "Costo de gas",
+    "inDegree": "Llamadores",
+    "callers": "Llamado por",
+    "callees": "Llama a",
+    "detailAriaLabel": "Detalles del nodo seleccionado",
+    "closeDetail": "Cerrar detalles del nodo",
+    "toolbarAriaLabel": "Controles del grafo",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "fit": "Ajustar a pantalla",
+    "reset": "Restablecer grafo",
+    "canvasAriaLabel": "Lienzo del grafo de llamadas del contrato",
+    "canvasDescription": "Grafo dirigido interactivo que muestra las relaciones de llamadas entre funciones",
+    "statNodes": "funciones",
+    "statEdges": "aristas",
+    "statEntryPoints": "puntos de entrada",
+    "statLeaves": "hojas"
+  },
+  "auditSessionTimer": {
+    "heading": "Temporizador de auditoria",
+    "presetsAriaLabel": "Duraciones predefinidas",
+    "presetLabel": "{{minutes}}m",
+    "remainingAriaLabel": "{{time}} restante",
+    "start": "Iniciar",
+    "resume": "Reanudar",
+    "pause": "Pausa",
+    "stop": "Detener",
+    "reset": "Reiniciar",
+    "running": "Ejecutando",
+    "paused": "En pausa",
+    "idle": "Listo",
+    "done": "Completado",
+    "sessionDuration": "Sesion: {{duration}}",
+    "historyHeading": "Historial de sesiones",
+    "totalAudited": "Total: {{duration}}",
+    "historyAriaLabel": "Historial de sesiones de auditoria",
+    "completed": "Completado",
+    "stopped": "Detenido"
+  },
+  "pushNotification": {
+    "permissionDenied": "Permiso de notificacion no concedido.",
+    "notConfigured": "Las notificaciones push no estan configuradas.",
+    "initError": "No se pudieron inicializar las notificaciones push.",
+    "enableError": "No se pudieron activar las notificaciones push.",
+    "disableAlerts": "Desactivar alertas",
+    "enableAlerts": "Activar alertas",
+    "alertsOn": "Alertas activadas"
+  },
+  "eventMonitor": {
+    "ariaLabel": "Linea de tiempo de eventos del protocolo",
+    "heading": "Monitor de eventos",
+    "filterAria": "Filtrar eventos por tipo",
+    "clearAria": "Borrar todos los eventos",
+    "count_one": "{{count}} evento",
+    "count_other": "{{count}} eventos",
+    "empty": "Aun no hay eventos registrados. Interactua con el panel para ver eventos aqui.",
+    "all": "Todos",
+    "typeVote": "Voto",
+    "typeTask": "Tarea",
+    "typeReputation": "Reputacion",
+    "typeWalletConnected": "Conectar",
+    "typeWalletDisconnected": "Desconectar",
+    "typeTransaction": "Tx",
+    "typeEmergencyHalt": "Parada",
+    "typeForceSync": "Sync",
+    "typeUnknown": "Evento"
+  },
+  "reputation": {
+    "heading": "Simulador de impacto en reputacion",
+    "approveVote": "Aprobar voto",
+    "disputeVote": "Impugnar voto",
+    "criticalFinding": "Hallazgo critico",
+    "highFinding": "Hallazgo alto",
+    "mediumFinding": "Hallazgo medio",
+    "completeAudit": "Completar auditoria",
+    "submitValidation": "Enviar validacion",
+    "currentScore": "Puntaje actual",
+    "netChange": "Cambio neto",
+    "projectedScore": "Puntaje proyectado"
+  },
+  "errorModal": {
+    "title": "Algo salio mal",
+    "closeAria": "Cerrar dialogo de error",
+    "cancel": "Cancelar",
+    "dismiss": "Descartar"
+  },
+  "sortableWidget": {
+    "dragAria": "Arrastrar para reordenar"
+  },
+  "leaderboard": {
+    "auditActivity": "Actividad de auditoria",
+    "title": "Tabla de clasificacion",
+    "all": "Todo",
+    "refresh": "Actualizar",
+    "refreshing": "Actualizando...",
+    "recent30d": "30d",
+    "audits": "Auditorias",
+    "leader": "Lider",
+    "noActivity": "Sin actividad",
+    "noWallet": "Sin billetera",
+    "score": "puntaje",
+    "findings": "Hallazgos",
+    "latest": "Reciente",
+    "rankAria": "Puesto {{rank}}"
+  },
+  "auditExport": {
+    "heading": "Exportar Registro de Auditoría",
+    "exportBtn": "Exportar a CSV",
+    "exporting": "Desencriptando y formateando registros...",
+    "count_one": "{{count}} evento histórico registrado",
+    "count_other": "{{count}} eventos históricos registrados",
+    "safetyInfo": "Datos desinfectados contra inyección de fórmulas",
+    "empty": "No se encontraron registros de auditoría históricos.",
+    "error": "Error al desencriptar los registros de auditoría: {{message}}"
+  },
+  "securityScanner": {
+    "heading": "Resultados del escaner de seguridad",
+    "total": "total",
+    "critical": "critico",
+    "scannerJson": "JSON del escaner",
+    "placeholder": "Pegue el JSON del escaner, por ejemplo {\"findings\":...}",
+    "criticalAlert": "Los hallazgos criticos requieren revision inmediata antes de aprobar o implementar."
+  },
+  "globalStateSearch": {
+    "heading": "Busqueda de estado global",
+    "searchSrLabel": "Buscar objetivos de estado on-chain",
+    "placeholder": "Buscar funcion, clave, contrato",
+    "functionId": "ID de funcion",
+    "contract": "Contrato",
+    "noResultsWithQuery": "No hay objetivos de estado on-chain que coincidan con \"{{query}}\".",
+    "noResults": "No hay objetivos de estado on-chain que coincidan con esa consulta.",
+    "targets": {
+      "taskPr": {
+        "label": "Tarea de PR registrada",
+        "description": "Rastrea los pull requests de GitHub fusionados que deben ser revisados por los guardians."
+      },
+      "guardianVote": {
+        "label": "Registro de voto de guardian",
+        "description": "Almacena la senal de aprobacion del guardian enviada despues de que Freighter firma la transaccion de voto."
+      },
+      "guardianReputation": {
+        "label": "Puntaje de reputacion de guardian",
+        "description": "Lee el puntaje de confianza on-chain que se muestra en el encabezado del panel del guardian."
+      },
+      "guardianRole": {
+        "label": "Rol de acceso de guardian",
+        "description": "Determina si la billetera conectada puede votar, gestionar tareas o solo ver el panel."
+      },
+      "proposalState": {
+        "label": "Estado de propuesta de gobernanza",
+        "description": "Encuentra el estado de la propuesta y los datos de aprobacion de firmantes para acciones controladas por gobernanza."
+      },
+      "horizonData": {
+        "label": "Datos de cuenta de Horizon",
+        "description": "Busqueda directa de datos de cuenta utilizada para verificar registros de tareas, votos, roles y reputacion."
+      }
+    },
+    "types": {
+      "task": "tarea",
+      "vote": "voto",
+      "reputation": "reputacion",
+      "governance": "gobernanza",
+      "network": "red"
+    }
+  },
+  "vulnerabilityWarning": {
+    "package": "Paquete",
+    "location": "Ubicacion",
+    "recommendation": "Recomendacion",
+    "source": "Fuente: ",
+    "reference": "Referencia"
+  },
+  "vulnerabilityList": {
+    "empty": "No hay hallazgos de vulnerabilidad cargados."
+  },
+  "ipfsDocViewer": {
+    "heading": "Visor de documentacion IPFS",
+    "inputAriaLabel": "Identificador de contenido IPFS (CID)",
+    "placeholder": "Introduce el CID IPFS (Qm... o bafy...)",
+    "load": "Cargar",
+    "invalidHash": "Hash IPFS no valido. Debe ser un CIDv0 (Qm...) o CIDv1 (bafy...).",
+    "iframeTitle": "Documento IPFS {{hash}}",
+    "empty": "Introduce un CID IPFS para cargar la documentacion."
+  },
+  "tour": {
+    "back": "Atras",
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "welcome": {
+      "title": "Bienvenido a Vero Guardian!",
+      "text": "Este recorrido rapido te guiara por las funciones principales del panel."
+    },
+    "connectWallet": {
+      "title": "Conecta tu billetera",
+      "text": "Comienza conectando tu billetera Freighter o Rabet para firmar votos en cadena."
+    },
+    "prFeed": {
+      "title": "Feed de revisiones de PR",
+      "text": "Explora los pull requests abiertos y emite tu voto de guardian en cada uno."
+    },
+    "transactionFeed": {
+      "title": "Transacciones en vivo",
+      "text": "Observa las transacciones de Horizon en tiempo real a medida que se registran votos y tareas."
+    },
+    "gasHeatmap": {
+      "title": "Mapa de calor de gas",
+      "text": "Identifica de un vistazo las funciones del contrato con alto consumo de recursos."
+    }
+  },
+  "consensusWidget": {
+    "ariaLabel": "Progreso de consenso para tarea {{taskId}}",
+    "heading": "Progreso de Consenso",
+    "taskLabel": "Tarea: {{taskId}}",
+    "progressLabel": "Progreso",
+    "votes": "votos",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "thresholdMet": "Consenso alcanzado en {{threshold}} votos",
+    "thresholdNeeded": "Se necesitan {{needed}} votos mas (umbral: {{threshold}})",
+    "error": "No se pudieron cargar los datos de consenso",
+    "retry": "Reintentar",
+    "status": {
+      "gathering": "Recolectando votos",
+      "inProgress": "En progreso",
+      "approaching": "Acercandose al consenso",
+      "reached": "Consenso alcanzado"
+    }
+  },
+  "multiSig": {
+    "heading": "Vista previa de propuesta multi-firma",
+    "xdrLabel": "XDR de transaccion",
+    "xdrPlaceholder": "Pega el XDR de la transaccion sin firmar…",
+    "threshold": "Umbral de peso requerido",
+    "signers": "Firmantes",
+    "signerKey": "Clave publica del firmante",
+    "signerPlaceholder": "Clave publica G…",
+    "weight": "Peso",
+    "signed": "Firmado",
+    "addSigner": "Agregar firmante",
+    "removeSigner": "Eliminar firmante",
+    "preview": "Vista previa y simular",
+    "simulating": "Simulando…",
+    "source": "Cuenta de origen",
+    "fee": "Tarifa",
+    "operations": "Operaciones",
+    "signerWeight": "Peso del firmante",
+    "thresholdMet": "Umbral alcanzado",
+    "thresholdNotMet": "Umbral no alcanzado",
+    "simSuccess": "Simulacion exitosa",
+    "simError": "Simulacion fallida"
+  }
+}
